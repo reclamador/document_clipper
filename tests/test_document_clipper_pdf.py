@@ -16,7 +16,7 @@ class TestDocumentClipperPdf(TestCase):
         self.document_clipper_pdf = DocumentClipperPdf(self.pdf_file)
 
     def tearDown(self):
-        self.pdf_file.close()
+        self.document_clipper_pdf = None
 
     def test_pdf_to_xml_ok(self):
         pdf_to_xml = self.document_clipper_pdf.pdf_to_xml()
@@ -73,7 +73,6 @@ class TestDocumentClipperPdf(TestCase):
         first_page = pages[0]
 
         page_width, page_height = self.document_clipper_pdf.get_page_max_dimensions(first_page)
-
 
         self.assertEqual(page_width, EXPECTED_MAX_PAGE_WIDTH)
         self.assertEqual(page_height, EXPECTED_MAX_PAGE_HEIGHT)
