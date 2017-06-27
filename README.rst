@@ -28,13 +28,5 @@ A set of utility classes and functions to process documents with Python
 Features
 --------
 
-* TODO
-
-Credits
----------
-
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
-
+* Fetch the number of pages associated to a PDF file.
+* Extract the coordinates and dimensions of a given text located in a PDF file.
