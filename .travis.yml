@@ -2,16 +2,6 @@
 language: python
 python:
 - 2.7
-deploy:
-  true:
-    python: 2.7
-    repo: reclamador/document_clipper
-    tags: true
-  distributions: sdist bdist_wheel
-  password:
-    secure: dD1a4uw2AzmUjN9XJiWvC/BY3csa3KCaTdacpdEmA8WxtaMTimt7EChHY6GqdNaz6G3px+qjGD3WzlZ5I2bYmEua55DhPsxi5/CbJP2cbyeCl22+Er8FmSjjFItR2bpFacGCSpZKfrFCBJxZE/5HMIsSZYvcuWI+76XdRSSCvWMuJSJzkUDarEGuXVQXymKplbXlYUQTByelc5nfrur08tUt+Hq5guVrKj5Vlg2GUyW6mYt/ZP9EdN2GsS4eOFpWTwfi/kUV2ojbjkzETx1/Cbn2kbKdLzSstYW13kEt8pJU7k46EVYyVZVepczmDBYUjR2xbIXuv/qJbSEG+wrAyS+5uqwOcTD/UTlZZlBrBX0h5nIKKzEuDF72BRsxiY8O/Okxg/EQGxk6583N+fncr43J1ZCpg+OlZtjA35IL/S3+0vr1BA3mpPI3kpUIG4EOWQj0KBVan/7IVX3pyE4+wCB3T6389Tb6vmV7fmQimnxF5OguRaEpMXDmdLl3y7Cz/yumN/0uiBwSi6dT0LJNJ9LnZ9/fbQQuTurUuXO1k+snkKCym99drp7Z/MpFYXgcUmBqYUpSNPU14l+wj03q6ei2BZJ3WWDjJGW9aNDx3armTV7Dz/BZ5Wdjopi+INgb2uxZM3Ui8KJ1UZKhPw0T88GjMH2pCvABYHn2hMNaaFQ=
-  provider: pypi
-  user: nick13jaremek
 before_install:
     - "export DISPLAY=:99.0"
     - "sh -e /etc/init.d/xvfb start"
