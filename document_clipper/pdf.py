@@ -22,7 +22,7 @@ class DocumentClipperPdf:
 
     def pdf_to_xml(self):
         """
-        Returns the XML counterpart of the input PDF file contents in a structure suitable for programmatic manipulation.
+        Returns the XML counterpart of the input PDF file contents in a structure suitable for programmatic manipulation
         @param pdf_contents: the contents of a PDF file object
         @return: a BeautifulSoup structure representing the PDF contents in XML nodes
         """
@@ -37,8 +37,8 @@ class DocumentClipperPdf:
 
     def find_text_with_content(self, pages, text_to_find, start_page=0):
         """
-        Given a list of BeautifulSoup 'page' nodes, performs a search of 'text_to_find' on the 'text' nodes of the 'page'
-        nodes. If no text is found, returns None
+        Given a list of BeautifulSoup 'page' nodes, performs a search of 'text_to_find' on the 'text' nodes of the
+        'page' nodes. If no text is found, returns None
         @param pages: a list of BeautifulSoup nodes with 'page' name
         @param text_to_find: the text to lookup in the 'pages' list in Unicode format
         @param start_page: optionally specify the starting position from which the 'pages' list should be iterated over.
@@ -61,10 +61,10 @@ class DocumentClipperPdf:
         """
         Given a BeautifulSoup node of type 'text', fetch the dimensions and location of the node in the PDF file.
 
-        @param text_node: the BeautifulSoup node with name 'text' that should contain attributes with the text's dimensions
-        and location coordinates
-        @return: a list with the location coordinates (left, top) and the dimensions (width, height) of the text associated
-        to the input node.
+        @param text_node: the BeautifulSoup node with name 'text' that should contain attributes with the text's
+        dimensions and location coordinates
+        @return: a list with the location coordinates (left, top) and the dimensions (width, height) of the text
+        associated to the input node.
         """
         if text_node.name != TEXT_TAG_NAME:
             raise Exception(u"Input node is not of type 'text'")
