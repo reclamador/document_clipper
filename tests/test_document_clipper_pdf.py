@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from unittest import TestCase
+from mock import mock
 import os
 from document_clipper.pdf import DocumentClipperPdf
 
@@ -63,6 +64,12 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(y_position, EXPECTED_Y_POSITION)
         self.assertEqual(width, EXPECTED_WIDTH)
         self.assertEqual(height, EXPECTED_HEIGHT)
+
+    def test_get_text_coordinates_not_ok(self):
+        non_text_node = mock.Mock()
+        non_text_node.name = 'none'
+        with self.assertRaisesRegexp(Exception, u"Input node is not of type 'text'"):
+            self.document_clipper_pdf.get_text_coordinates(non_text_node)
 
     def test_get_page_dimensions_ok(self):
         EXPECTED_MAX_PAGE_WIDTH = 892.0
