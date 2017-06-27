@@ -13,17 +13,14 @@ with open('HISTORY.rst') as history_file:
 
 
 requirements = [
-    'Click>=6.0',
-    # TODO: put package requirements here
+    'beautifulsoup4==4.3.2',
+    'lxml==3.3.2',
+    'scraperwiki==0.5.1'
 ]
 
-setup_requirements = [
-    # TODO(nick13jaremek): put setup requirements (distutils extensions, etc.) here
-]
+setup_requirements = []
 
-test_requirements = [
-    # TODO: put package test requirements here
-]
+test_requirements = []
 
 setup(
     name='document_clipper',
@@ -32,13 +29,8 @@ setup(
     long_description=readme + '\n\n' + history,
     author="Nick Jaremek",
     author_email='nick13jaremek@gmail.com',
-    url='https://github.com/nick13jaremek/document_clipper',
+    url='https://github.com/reclamador/document_clipper',
     packages=find_packages(include=['document_clipper']),
-    entry_points={
-        'console_scripts': [
-            'document_clipper=document_clipper.cli:main'
-        ]
-    },
     include_package_data=True,
     install_requires=requirements,
     license="MIT license",
@@ -50,12 +42,7 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
     ],
     test_suite='tests',
     tests_require=test_requirements,
