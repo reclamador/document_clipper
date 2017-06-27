@@ -6,15 +6,15 @@ document-clipper
 .. image:: https://img.shields.io/pypi/v/document_clipper.svg
         :target: https://pypi.python.org/pypi/document_clipper
 
-.. image:: https://img.shields.io/travis/nick13jaremek/document_clipper.svg
-        :target: https://travis-ci.org/nick13jaremek/document_clipper
+.. image:: https://img.shields.io/travis/reclamador/document_clipper.svg
+        :target: https://travis-ci.org/reclamador/document_clipper
 
 .. image:: https://readthedocs.org/projects/document-clipper/badge/?version=latest
         :target: https://document-clipper.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://pyup.io/repos/github/nick13jaremek/document_clipper/shield.svg
-     :target: https://pyup.io/repos/github/nick13jaremek/document_clipper/
+.. image:: https://pyup.io/repos/github/reclamador/document_clipper/shield.svg
+     :target: https://pyup.io/repos/github/reclamador/document_clipper/
      :alt: Updates
 
 
