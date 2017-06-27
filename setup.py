@@ -15,8 +15,7 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     'beautifulsoup4==4.3.2',
     'lxml==3.3.2',
-    'scraperwiki==0.5.1',
-   '-e git+https://github.com/scraperwiki/scraperwiki-python#egg=scraperwiki'
+    'scraperwiki==0.5.1'
 ]
 
 setup_requirements = []
@@ -36,6 +35,9 @@ setup(
     packages=find_packages(include=['document_clipper']),
     include_package_data=True,
     install_requires=requirements,
+    dependency_links=[
+        "-git+ssh://git@github.com/scraperwiki/scraperwiki-python#egg=scraperwiki"
+    ],
     license="MIT license",
     zip_safe=False,
     keywords='document_clipper',
