@@ -15,12 +15,15 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     'beautifulsoup4==4.3.2',
     'lxml==3.3.2',
-    'scraperwiki==0.5.1'
+    'scraperwiki==0.5.1',
+   '-e git+https://github.com/scraperwiki/scraperwiki-python#egg=scraperwiki'
 ]
 
 setup_requirements = []
 
-test_requirements = []
+test_requirements = [
+    'mock==2.0.0'
+]
 
 setup(
     name='document_clipper',
