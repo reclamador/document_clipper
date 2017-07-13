@@ -3,7 +3,7 @@
 
 """The setup script."""
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -32,7 +32,9 @@ setup(
     author="Nick Jaremek",
     author_email='nick13jaremek@gmail.com',
     url='https://github.com/reclamador/document_clipper',
-    packages=find_packages(include=['document_clipper']),
+    packages=[
+        'document_clipper'
+    ],
     include_package_data=True,
     install_requires=requirements,
     dependency_links=[
