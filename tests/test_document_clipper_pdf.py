@@ -39,15 +39,6 @@ class TestDocumentClipperPdf(TestCase):
         text_node = text_nodes[0]
         self.assertIsNotNone(text_node)
 
-    def test_find_text_with_content_ok(self):
-        self.document_clipper_pdf.pdf_to_xml()
-        pages = self.document_clipper_pdf.get_pages()
-        text_nodes = self.document_clipper_pdf.find_text_with_content(pages=pages,
-                                                   text_to_find=u'HUGE',
-                                                   start_page=0)
-        text_node = text_nodes[0]
-        self.assertIsNotNone(text_node)
-
     def test_find_text_with_content_not_ok(self):
         self.document_clipper_pdf.pdf_to_xml()
         pages = self.document_clipper_pdf.get_pages()
