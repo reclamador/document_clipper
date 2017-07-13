@@ -33,19 +33,29 @@ class TestDocumentClipperPdf(TestCase):
     def test_find_text_with_content_ok(self):
         self.document_clipper_pdf.pdf_to_xml()
         pages = self.document_clipper_pdf.get_pages()
-        text_node = self.document_clipper_pdf.find_text_with_content(pages=pages,
+        text_nodes = self.document_clipper_pdf.find_text_with_content(pages=pages,
                                                    text_to_find=u'chapter 3',
                                                    start_page=0)
+        text_node = text_nodes[0]
+        self.assertIsNotNone(text_node)
+
+    def test_find_text_with_content_ok(self):
+        self.document_clipper_pdf.pdf_to_xml()
+        pages = self.document_clipper_pdf.get_pages()
+        text_nodes = self.document_clipper_pdf.find_text_with_content(pages=pages,
+                                                   text_to_find=u'HUGE',
+                                                   start_page=0)
+        text_node = text_nodes[0]
         self.assertIsNotNone(text_node)
 
     def test_find_text_with_content_not_ok(self):
         self.document_clipper_pdf.pdf_to_xml()
         pages = self.document_clipper_pdf.get_pages()
         start_page = len(pages) - 1
-        text_node = self.document_clipper_pdf.find_text_with_content(pages=pages,
+        text_nodes = self.document_clipper_pdf.find_text_with_content(pages=pages,
                                                                      text_to_find=u'chapter 3',
                                                                      start_page=start_page)
-        self.assertIsNone(text_node)
+        self.assertEqual(text_nodes, [])
 
     def test_get_text_coordinates_ok(self):
         EXPECTED_X_POSITION = 149.0
@@ -55,9 +65,10 @@ class TestDocumentClipperPdf(TestCase):
 
         self.document_clipper_pdf.pdf_to_xml()
         pages = self.document_clipper_pdf.get_pages()
-        text_node = self.document_clipper_pdf.find_text_with_content(pages=pages,
+        text_nodes = self.document_clipper_pdf.find_text_with_content(pages=pages,
                                                                      text_to_find=u'chapter 3',
                                                                      start_page=0)
+        text_node = text_nodes[-1]  # Use last text occurrence
         x_position, y_position, width, height = self.document_clipper_pdf.get_text_coordinates(text_node)
 
         self.assertEqual(x_position, EXPECTED_X_POSITION)

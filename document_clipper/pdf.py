@@ -45,24 +45,24 @@ class DocumentClipperPdf:
     def find_text_with_content(self, pages, text_to_find, start_page=0):
         """
         Given a list of 'page' nodes, performs a search of 'text_to_find' on the 'text' nodes of the
-        'page' nodes. If no text is found, returns None
+        'page' nodes. If no text is found, returns an empty list.
         @param pages: a list of XML nodes (from a BeautifulSoup structure) with 'page' name
         @param text_to_find: the text to lookup in the 'pages' list in Unicode format
         @param start_page: optionally specify the starting position from which the 'pages' list should be iterated over.
         (default=0)
-        @return: the XML node of type 'text' that contains the searched text, None if no match was found.
+        @return: a list of XML nodes of type 'text' that contain the searched text. Empty list if none was found.
         """
         looked_up_pages = pages[slice(start_page, None)]  # From some start position to last item (inclusive)
         content = None
-
+        found_nodes = []
         for page in looked_up_pages:
             content = page.find(text=re.compile(text_to_find))
             if content:
                 while content.name != TEXT_TAG_NAME:
                     content = content.parent
-                break
+                found_nodes.append(content)
 
-        return content
+        return found_nodes
 
     def get_text_coordinates(self, text_node):
         """
