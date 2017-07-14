@@ -24,6 +24,26 @@ A set of utility classes and functions to process documents with Python
 * Free software: MIT license
 * Documentation: https://document-clipper.readthedocs.io.
 
+Installation
+------------
+
+The `document_clipper` package uses libraries that rely on the `pdftohtml` command line util. It can be obtained by
+installing the `poppler-utils` package.
+
+For instance, in Ubuntu, run the following:
+
+.. code-block:: bash
+
+    $ sudo apt-get install poppler-utils
+
+
+Then, you may install `document_clipper` as usual via Python package managers, such as PIP:
+
+.. code-block:: bash
+
+    $ pip install document_clipper
+
+
 
 Features
 --------
