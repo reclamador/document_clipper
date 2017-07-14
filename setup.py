@@ -26,7 +26,7 @@ test_requirements = [
 
 setup(
     name='document_clipper',
-    version='0.6.1',
+    version='0.7.0',
     description="A set of utility classes and functions to process documents with Python",
     long_description=readme + '\n\n' + history,
     author="Nick Jaremek",
