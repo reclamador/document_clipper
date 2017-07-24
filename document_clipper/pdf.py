@@ -55,12 +55,12 @@ class DocumentClipperPdf:
         looked_up_pages = pages[slice(start_page, None)]  # From some start position to last item (inclusive)
         content = None
         found_nodes = []
-        for page in looked_up_pages:
+        for page_idx, page in enumerate(looked_up_pages):
             content = page.find(text=re.compile(text_to_find))
             if content:
                 while content.name != TEXT_TAG_NAME:
                     content = content.parent
-                found_nodes.append(content)
+                found_nodes.append({'page_idx': page_idx, 'content': content})
 
         return found_nodes
 

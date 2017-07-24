@@ -36,8 +36,9 @@ class TestDocumentClipperPdf(TestCase):
         text_nodes = self.document_clipper_pdf.find_text_with_content(pages=pages,
                                                    text_to_find=u'chapter 3',
                                                    start_page=0)
-        text_node = text_nodes[0]
-        self.assertIsNotNone(text_node)
+        text_node_item = text_nodes[0]
+        self.assertIsNotNone(text_node_item['content'])
+        self.assertEqual(text_node_item['page_idx'], 8)
 
     def test_find_text_with_content_not_ok(self):
         self.document_clipper_pdf.pdf_to_xml()
@@ -60,7 +61,7 @@ class TestDocumentClipperPdf(TestCase):
                                                                      text_to_find=u'chapter 3',
                                                                      start_page=0)
         text_node = text_nodes[-1]  # Use last text occurrence
-        x_position, y_position, width, height = self.document_clipper_pdf.get_text_coordinates(text_node)
+        x_position, y_position, width, height = self.document_clipper_pdf.get_text_coordinates(text_node['content'])
 
         self.assertEqual(x_position, EXPECTED_X_POSITION)
         self.assertEqual(y_position, EXPECTED_Y_POSITION)
