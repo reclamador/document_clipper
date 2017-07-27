@@ -66,7 +66,8 @@ class TestDocumentClipperPdf(TestCase):
                                                                      text_to_find=u'chapter 3',
                                                                      start_page=0)
         text_node = text_nodes[-1]  # Use last text occurrence
-        x_position, y_position, width, height = self.document_clipper_pdf_reader.get_text_coordinates(text_node['content'])
+        x_position, y_position, width, height = \
+            self.document_clipper_pdf_reader.get_text_coordinates(text_node['content'])
 
         self.assertEqual(x_position, EXPECTED_X_POSITION)
         self.assertEqual(y_position, EXPECTED_Y_POSITION)
@@ -134,4 +135,3 @@ class TestDocumentClipperPdf(TestCase):
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 13)
-
