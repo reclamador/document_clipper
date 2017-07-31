@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
 import logging
-import os
 import imghdr
 from scraperwiki import pdftoxml
 from bs4 import BeautifulSoup
