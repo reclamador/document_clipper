@@ -137,20 +137,17 @@ class DocumentClipperPdfWriter:
         :param kwargs: any parameter accepted by Image.save i.e. quality
         :return:
         """
-
         processor = ResizeToFit(self.MAX_SIZE_WITH_MARGINS[0], self.MAX_SIZE_WITH_MARGINS[1])
         img = processor.process(img)
         # Create a white canvas and paste the image
         tmp_image = Image.new("RGB", self.max_size_in_pixels, "white")
         tmp_image.paste(img, (self.margin_left, self.margin_top,
                         self.margin_left + img.size[0], self.margin_top + img.size[1]))
-
         # Save the image as .pdf file
         if not pdf_path:
             f = NamedTemporaryFile(delete=False)
             pdf_path = f.name
         tmp_image.save(pdf_path, "PDF", resolution=100.0, **kwargs)
-
         return pdf_path
 
     def merge_pdfs(self, final_pdf_path, pdf_files_paths, blank_page=True):
@@ -205,9 +202,8 @@ class DocumentClipperPdfWriter:
         for file_path in files_paths:
             if imghdr.what(file_path):
                 img = Image.open(file_path)
-                real_file_paths.append(self.image_to_pdf(img))
+                path = self.image_to_pdf(img)
+                real_file_paths.append(path)
             else:
-                extension = os.path.splitext(file_path)[1]
-                if extension.lower() == ".pdf":
-                    real_file_paths.append(file_path)
+                real_file_paths.append(file_path)
         self.merge_pdfs(final_pdf_path, real_file_paths, blank_page)
