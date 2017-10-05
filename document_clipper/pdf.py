@@ -120,13 +120,18 @@ class DocumentClipperPdfWriter:
     MARGIN_LEFT = 40
     MARGIN_TOP = 54
 
-
     def __init__(self, max_size_in_pixels=MAX_SIZE_IN_PIXELS, max_size_with_margins=MAX_SIZE_WITH_MARGINS,
                  margin_left=MARGIN_LEFT, margin_top=MARGIN_TOP):
         self.max_size_with_margins = max_size_with_margins
         self.max_size_in_pixels = max_size_in_pixels
         self.margin_left = margin_left
         self.margin_top = margin_top
+
+    def _write_to_pdf(self, output, path):
+        logging.info(u"Start writing '%s'" % path)
+        output_stream = file(path, "wb")
+        output.write(output_stream)
+        output_stream.close()
 
     def image_to_pdf(self, img, pdf_path=None, **kwargs):
         """
@@ -184,10 +189,7 @@ class DocumentClipperPdfWriter:
             if blank_page:
                 output.addBlankPage()
 
-        logging.info(u"Start writing '%s'" % final_pdf_path)
-        output_stream = file(final_pdf_path, "wb")
-        output.write(output_stream)
-        output_stream.close()
+        self._write_to_pdf(output, final_pdf_path)
 
     def merge(self, final_pdf_path, files_paths, blank_page=False):
         """
@@ -206,3 +208,17 @@ class DocumentClipperPdfWriter:
             else:
                 real_file_paths.append(file_path)
         self.merge_pdfs(final_pdf_path, real_file_paths, blank_page)
+
+    def slice(self, pdf_file_path, pages_actions, final_pdf_path):
+        """
+        Create new pdf from a slice of pages of a PDF
+        :param pdf_file_path: path to create pdf
+        :param pages_actions: num pages and optional rotation clockwise
+        :return:
+        """
+        output = PdfFileWriter()
+        input = PdfFileReader(open(pdf_file_path, 'rb'), strict=False)
+        for num_page, rotation in pages_actions:
+            output.addPage(input.getPage(num_page-1).rotateClockwise(rotation) if rotation
+                           else input.getPage(num_page-1))
+        self._write_to_pdf(output, final_pdf_path)

@@ -135,3 +135,21 @@ class TestDocumentClipperPdf(TestCase):
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 13)
+
+    def test_slice(self):
+        self.document_clipper_pdf_writer.slice(self.pdf_file.name, [(2, 0), (3, 0)], PATH_TO_NEW_PDF_FILE)
+
+        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
+        new_document_clipper_pdf_reader.pdf_to_xml()
+        pages = new_document_clipper_pdf_reader.get_pages()
+        self.assertEqual(len(pages), 2)
+
+    def test_slice_with_rotation(self):
+        self.document_clipper_pdf_writer.slice(self.pdf_file.name, [(2, 90), (4, 180)], PATH_TO_NEW_PDF_FILE)
+
+        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
+        new_document_clipper_pdf_reader.pdf_to_xml()
+        pages = new_document_clipper_pdf_reader.get_pages()
+        self.assertEqual(len(pages), 2)
