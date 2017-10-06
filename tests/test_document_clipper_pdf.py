@@ -145,6 +145,19 @@ class TestDocumentClipperPdf(TestCase):
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 2)
 
+    def test_slice_with_page_candidate_below_valid_page_range(self):
+        page_actions = [(0, 0), (3, 0)]
+
+        with self.assertRaisesRegexp(Exception, u'Invalid page numbers range in actions: '
+                                                u'page numbers cannot be lower than 1*'):
+            self.document_clipper_pdf_writer.slice(self.pdf_file.name, page_actions, PATH_TO_NEW_PDF_FILE)
+
+    def test_slice_with_page_candidate_above_valid_page_range(self):
+        page_actions = [(50, 0), (3, 0)]
+
+        with self.assertRaisesRegexp(Exception, u'Invalid page numbers range in actions: page numbers cannot exceed*'):
+            self.document_clipper_pdf_writer.slice(self.pdf_file.name, page_actions, PATH_TO_NEW_PDF_FILE)
+
     def test_slice_with_rotation(self):
         self.document_clipper_pdf_writer.slice(self.pdf_file.name, [(2, 90), (4, 180)], PATH_TO_NEW_PDF_FILE)
 

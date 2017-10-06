@@ -212,12 +212,28 @@ class DocumentClipperPdfWriter:
     def slice(self, pdf_file_path, pages_actions, final_pdf_path):
         """
         Create new pdf from a slice of pages of a PDF
-        :param pdf_file_path: path to create pdf
-        :param pages_actions: num pages and optional rotation clockwise
-        :return:
+        :param pdf_file_path: path of the source PDF document, from which a new PDF file will be created.
+        :param pages_actions: list of tuples, each tuple containing the page number and the clockwise rotation to
+        be applied. The page number is non-zero indexed (first is page 1, and so on).
+        :return: None. Writes the resulting PDF file into the provided path.
         """
         output = PdfFileWriter()
         input = PdfFileReader(open(pdf_file_path, 'rb'), strict=False)
+
+        # Check page actions correspond to valid input PDF pages
+        input_num_pages = input.getNumPages()
+        actions_page_numbers = zip(*pages_actions)[0]
+        largest_page_num = max(actions_page_numbers)
+        lowest_page_num = min(actions_page_numbers)
+
+        if lowest_page_num < 1:
+            raise Exception(u"Invalid page numbers range in actions: page numbers cannot be lower than 1.")
+
+        if (largest_page_num - 1) > input_num_pages:
+            raise Exception(u"Invalid page numbers range in actions: page numbers cannot exceed the maximum numbers"
+                            u"of pages of the source PDF document.")
+
+        # Perform actual slicing
         for num_page, rotation in pages_actions:
             output.addPage(input.getPage(num_page-1).rotateClockwise(rotation) if rotation
                            else input.getPage(num_page-1))
