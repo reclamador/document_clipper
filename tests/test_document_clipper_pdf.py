@@ -93,7 +93,6 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(page_width, EXPECTED_MAX_PAGE_WIDTH)
         self.assertEqual(page_height, EXPECTED_MAX_PAGE_HEIGHT)
 
-
     def test_image_to_pdf(self):
         new_pdf_path = self.document_clipper_pdf_writer.image_to_pdf(self.img_file)
         new_pdf = open(new_pdf_path)
@@ -102,8 +101,18 @@ class TestDocumentClipperPdf(TestCase):
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 1)
 
-    def test_merge_pdfs(self):
-        self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, [self.pdf_file.name, self.pdf_file.name])
+    def test_merge_pdfs_without_rotation(self):
+        actions = [(self.pdf_file.name, 0), (self.pdf_file.name, 0)]
+        self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
+        new_document_clipper_pdf_reader.pdf_to_xml()
+        pages = new_document_clipper_pdf_reader.get_pages()
+        self.assertEqual(len(pages), 20)
+
+    def test_merge_pdfs_with_rotation(self):
+        actions = [(self.pdf_file.name, 90), (self.pdf_file.name, 90)]
+        self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions)
         new_pdf = open(PATH_TO_NEW_PDF_FILE)
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
@@ -111,16 +120,27 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(len(pages), 20)
 
     def test_merge_pdfs_with_blank_page(self):
-        self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, [self.pdf_file.name, self.pdf_file.name],
-                                               blank_page=True)
+        actions = [(self.pdf_file.name, 0), (self.pdf_file.name, 0)]
+        self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions,
+                                               append_blank_page=True)
         new_pdf = open(PATH_TO_NEW_PDF_FILE)
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 22)
 
-    def test_merge_files(self):
-        self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, [self.pdf_file.name, PATH_TO_JPG_FILE])
+    def test_merge_files_without_rotation(self):
+        actions = [(self.pdf_file.name, 0), (PATH_TO_JPG_FILE, 0)]
+        self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
+        new_document_clipper_pdf_reader.pdf_to_xml()
+        pages = new_document_clipper_pdf_reader.get_pages()
+        self.assertEqual(len(pages), 11)
+
+    def test_merge_files_with_rotation(self):
+        actions = [(self.pdf_file.name, 0), (PATH_TO_JPG_FILE, 90)]
+        self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions)
         new_pdf = open(PATH_TO_NEW_PDF_FILE)
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
@@ -128,8 +148,9 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(len(pages), 11)
 
     def test_merge_files_with_blank_page(self):
-        self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, [self.pdf_file.name, PATH_TO_JPG_FILE],
-                                               blank_page=True)
+        actions = [(self.pdf_file.name, 0), (PATH_TO_JPG_FILE, 0)]
+        self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions,
+                                               append_blank_page=True)
         new_pdf = open(PATH_TO_NEW_PDF_FILE)
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
@@ -137,7 +158,8 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(len(pages), 13)
 
     def test_slice(self):
-        self.document_clipper_pdf_writer.slice(self.pdf_file.name, [(2, 0), (3, 0)], PATH_TO_NEW_PDF_FILE)
+        page_actions = [(2, 0), (3, 0)]
+        self.document_clipper_pdf_writer.slice(self.pdf_file.name, page_actions, PATH_TO_NEW_PDF_FILE)
 
         new_pdf = open(PATH_TO_NEW_PDF_FILE)
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)

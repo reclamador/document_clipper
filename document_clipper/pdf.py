@@ -147,6 +147,7 @@ class DocumentClipperPdfWriter:
         tmp_image = Image.new("RGB", self.max_size_in_pixels, "white")
         tmp_image.paste(img, (self.margin_left, self.margin_top,
                         self.margin_left + img.size[0], self.margin_top + img.size[1]))
+
         # Save the image as .pdf file
         if not pdf_path:
             f = NamedTemporaryFile(delete=False)
@@ -154,12 +155,13 @@ class DocumentClipperPdfWriter:
         tmp_image.save(pdf_path, "PDF", resolution=100.0, **kwargs)
         return pdf_path
 
-    def merge_pdfs(self, final_pdf_path, pdf_files_paths, blank_page=True):
+    def merge_pdfs(self, final_pdf_path, actions, append_blank_page=True):
         """
         Merge pdf files in only one PDF
         :param final_pdf_path: file path to save pdf
-        :param pdf_files_paths: PDF file paths to merge
-        :param blank_page: True if want a blank page between pdf
+        :param actions: list of tuples, each tuple containing a PDF file path and the degrees of counterclockwise
+        rotation to perform on the PDF document.
+        :param append_blank_page: append a blank page between documents if True.
         :return:
         """
 
@@ -167,49 +169,56 @@ class DocumentClipperPdfWriter:
 
         output = PdfFileWriter()
 
-        for num_doc, pdf_file in enumerate(pdf_files_paths):
-            if pdf_file == final_pdf_path:
+        for num_doc, (pdf_file_path, rotation) in enumerate(actions):
+            if pdf_file_path == final_pdf_path:
                 continue
 
-            if not pdf_file:
+            if not pdf_file_path:
                 continue
 
-            logging.info(u"Parse '%s'" % pdf_file)
+            logging.info(u"Parse '%s'" % pdf_file_path)
 
             try:
-                document = PdfFileReader(open(pdf_file, 'rb'), strict=False)
+                document = PdfFileReader(open(pdf_file_path, 'rb'), strict=False)
                 num_pages = document.getNumPages()
             except Exception as exc:
-                logging.exception("Error merging pdf %s: %s" % (pdf_file, str(exc)))
+                logging.exception("Error merging pdf %s: %s" % (pdf_file_path, str(exc)))
                 raise DocumentClipperError
 
+            # Rotation must be performed per page, not per document
             for num_page in range(num_pages):
-                output.addPage(document.getPage(num_page))
+                page = document.getPage(num_page)
+                page = page.rotateCounterClockwise(rotation)
+                output.addPage(page)
 
-            if blank_page:
+            if append_blank_page:
                 output.addBlankPage()
 
         self._write_to_pdf(output, final_pdf_path)
 
-    def merge(self, final_pdf_path, files_paths, blank_page=False):
+    def merge(self, final_pdf_path, actions, append_blank_page=False):
         """
         Merge files (images and pdfs) in to one PDF
         :param final_pdf_path: file path to save pdf
-        :param files_paths: file paths to merge
-        :param blank_page: True if want a blank page between pdf
+        :param actions: list of tuples, each tuple consisting of a PDF file path, and the amount of clockwise rotation
+        to apply to the document.
+        :param append_blank_page: append a blank page between documents if True.
         :return:
         """
-        real_file_paths = []
-        for file_path in files_paths:
+        real_actions = []
+        for file_path, rotation in actions:
             if imghdr.what(file_path):
                 img = Image.open(file_path)
                 path = self.image_to_pdf(img)
-                real_file_paths.append(path)
+                action = (path, rotation)
+                real_actions.append(action)
             else:
-                real_file_paths.append(file_path)
-        self.merge_pdfs(final_pdf_path, real_file_paths, blank_page)
+                action = (file_path, rotation)
+                real_actions.append(action)
 
-    def slice(self, pdf_file_path, pages_actions, final_pdf_path):
+        self.merge_pdfs(final_pdf_path, real_actions, append_blank_page)
+
+    def slice(self, pdf_file_path, page_actions, final_pdf_path):
         """
         Create new pdf from a slice of pages of a PDF
         :param pdf_file_path: path of the source PDF document, from which a new PDF file will be created.
@@ -222,7 +231,7 @@ class DocumentClipperPdfWriter:
 
         # Check page actions correspond to valid input PDF pages
         input_num_pages = input.getNumPages()
-        actions_page_numbers = zip(*pages_actions)[0]
+        actions_page_numbers = zip(*page_actions)[0]
         largest_page_num = max(actions_page_numbers)
         lowest_page_num = min(actions_page_numbers)
 
@@ -233,8 +242,8 @@ class DocumentClipperPdfWriter:
             raise Exception(u"Invalid page numbers range in actions: page numbers cannot exceed the maximum numbers"
                             u"of pages of the source PDF document.")
 
-        # Perform actual slicing
-        for num_page, rotation in pages_actions:
-            output.addPage(input.getPage(num_page-1).rotateClockwise(rotation) if rotation
+        # Perform actual slicing + rotation
+        for num_page, rotation in page_actions:
+            output.addPage(input.getPage(num_page-1).rotateCounterClockwise(rotation) if rotation
                            else input.getPage(num_page-1))
         self._write_to_pdf(output, final_pdf_path)
