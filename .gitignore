@@ -64,3 +64,6 @@ target/
 
 .idea/
 src
+
+# ignore PDF files generated in tests
+tests/*.pdf
