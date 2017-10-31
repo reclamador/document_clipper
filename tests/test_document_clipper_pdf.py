@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from unittest import TestCase
-from mock import mock
 from mock import Mock
 import os
 from document_clipper.pdf import DocumentClipperPdfReader, DocumentClipperPdfWriter
@@ -83,7 +82,7 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(height, EXPECTED_HEIGHT)
 
     def test_get_text_coordinates_not_ok(self):
-        non_text_node = mock.Mock()
+        non_text_node = Mock()
         non_text_node.name = 'none'
         with self.assertRaisesRegexp(Exception, u"Input node is not of type 'text'"):
             self.document_clipper_pdf_reader.get_text_coordinates(non_text_node)

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from unittest import TestCase
-from mock import mock
 import os
 from document_clipper.utils import PDFToTextCommand, PDFToImagesCommand, PDFListImagesCommand
 from document_clipper.exceptions import ShellCommandError
@@ -65,4 +64,3 @@ class TestShellCommands(TestCase):
     def test_pdf_images_no_pdf(self):
         pdftoimages_cmd = PDFToImagesCommand()
         self.assertRaises(ShellCommandError, pdftoimages_cmd.run, PATH_TO_JPG_FILE, 1)
-

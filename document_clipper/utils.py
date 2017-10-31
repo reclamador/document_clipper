@@ -1,6 +1,6 @@
 import subprocess
 import tempfile
-
+import errno
 
 from document_clipper import exceptions
 
@@ -57,7 +57,7 @@ class PDFToTextCommand(ShellCommand):
     """
     def run(self, file_name, page):
         stdout, stderr = super(PDFToTextCommand, self).run(['pdftotext', '-enc', 'UTF-8', '-f', str(page), '-l',
-                                                            str(page),  file_name, '-'])
+                                                            str(page), file_name, '-'])
         return stdout
 
 
@@ -82,7 +82,3 @@ class PDFListImagesCommand(ShellCommand):
 
     def has_images(self, out):
         return 'image' and 'jpeg' in out
-
-
-
-
