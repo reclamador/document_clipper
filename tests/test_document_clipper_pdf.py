@@ -3,6 +3,7 @@
 
 from unittest import TestCase
 from mock import mock
+from mock import Mock
 import os
 from document_clipper.pdf import DocumentClipperPdfReader, DocumentClipperPdfWriter
 from PIL import Image
@@ -12,6 +13,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PATH_TO_PDF_FILE = os.path.join(CURRENT_DIR, 'sample-files/sample.pdf')
 PATH_TO_JPG_FILE = os.path.join(CURRENT_DIR, 'sample-files/sample.jpg')
 PATH_TO_NEW_PDF_FILE = os.path.join(CURRENT_DIR, 'new_pdf.pdf')
+PATH_TO_PDF_FILE_WITH_IMAGES = os.path.join(CURRENT_DIR, 'sample-files/dni_samples.pdf')
 
 
 class TestDocumentClipperPdf(TestCase):
@@ -23,6 +25,12 @@ class TestDocumentClipperPdf(TestCase):
 
     def tearDown(self):
         self.document_clipper_pdf_reader = None
+
+
+    def _images_to_text_method_mocked(self):
+        method = Mock()
+        method.return_value = 'llamada a metodo'
+        return method
 
     def test_pdf_to_xml_ok(self):
         pdf_to_xml = self.document_clipper_pdf_reader.pdf_to_xml()
@@ -188,3 +196,18 @@ class TestDocumentClipperPdf(TestCase):
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 2)
+
+    def test_pdf_to_text_from_pdf_with_only_text(self):
+        text = self.document_clipper_pdf_reader.pdf_to_text()
+        self.assertIn('Sample PDF Document', text)
+        self.assertIn('How to write a document', text)
+        self.assertIn('Math', text)
+        self.assertIn('Huge', text)
+
+    def test_pdf_to_text_from_pdf_with_images(self):
+        self.pdf_file = open(PATH_TO_PDF_FILE_WITH_IMAGES)
+        self.document_clipper_pdf_reader = DocumentClipperPdfReader(self.pdf_file)
+        text = self.document_clipper_pdf_reader.pdf_to_text(self._images_to_text_method_mocked())
+        self.assertIn('NIF', text)
+        self.assertIn('Documento de identidad electrónico', text)
+        self.assertEqual(3, len(self.document_clipper_pdf_reader._pdf_image_to_text_method.call_args_list))

@@ -2,12 +2,15 @@
 import re
 import logging
 import imghdr
+import os
+from os import path
 from scraperwiki import pdftoxml
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from pilkit.processors import ResizeToFit
 from PIL import Image
 from tempfile import NamedTemporaryFile
+from document_clipper.utils import PDFListImagesCommand, PDFToTextCommand, PDFToImagesCommand
 
 
 PAGE_TAG_NAME = u'page'
@@ -20,9 +23,10 @@ class DocumentClipperError(Exception):
 
 
 class DocumentClipperPdfReader:
-    def __init__(self, pdf_file):
+    def __init__(self, pdf_file, pdf_image_to_text_method=None):
         self.pdf_file = pdf_file
         self._pdf_to_xml = None
+        self._pdf_image_to_text_method = pdf_image_to_text_method
 
     def _read_file(self):
         """
@@ -111,6 +115,33 @@ class DocumentClipperPdfReader:
         params = [max_page_width, max_page_height]
 
         return self._str_list_to_int_list(params)
+
+    def _pdf_page_to_text(self, page):
+        pdftotext_cmd = PDFToTextCommand()
+        pdflistimages_cmd = PDFListImagesCommand()
+        pdfimages_cmd = PDFToImagesCommand()
+        text_out = pdftotext_cmd.run(self.pdf_file.name, page)
+        images_out = pdflistimages_cmd.run(self.pdf_file.name, page)
+        if pdflistimages_cmd.has_images(images_out):
+            images_dir = pdfimages_cmd.run(self.pdf_file.name, page)
+            for f in os.listdir(images_dir):
+                if path.isfile('/'.join([images_dir, f])) and f.endswith('.jpg'):
+                    text_out += self._pdf_image_to_text_method('/'.join([images_dir, f]))
+        return text_out
+
+    def pdf_to_text(self, pdf_image_to_text_method=None):
+        """
+        Returns the text content of the pdf
+        Loops through pages extracting text from images too if necessary
+        :return:
+        """
+        if pdf_image_to_text_method:
+            self._pdf_image_to_text_method = pdf_image_to_text_method
+        text = ''
+        self.pdf_to_xml()
+        for index, value in enumerate(self.get_pages()):
+            text += self._pdf_page_to_text(index + 1)
+        return text
 
 
 class DocumentClipperPdfWriter:
