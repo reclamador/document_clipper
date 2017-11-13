@@ -13,6 +13,7 @@ PATH_TO_PDF_FILE = os.path.join(CURRENT_DIR, 'sample-files/sample.pdf')
 PATH_TO_JPG_FILE = os.path.join(CURRENT_DIR, 'sample-files/sample.jpg')
 PATH_TO_NEW_PDF_FILE = os.path.join(CURRENT_DIR, 'new_pdf.pdf')
 PATH_TO_PDF_FILE_WITH_IMAGES = os.path.join(CURRENT_DIR, 'sample-files/dni_samples.pdf')
+PATH_TO_PDF_FILE_WITH_IMAGES_NO_JPG = os.path.join(CURRENT_DIR, 'sample-files/pdf_with_images_not_jpg.pdf')
 
 
 class TestDocumentClipperPdf(TestCase):
@@ -209,4 +210,11 @@ class TestDocumentClipperPdf(TestCase):
         text = self.document_clipper_pdf_reader.pdf_to_text(self._images_to_text_method_mocked())
         self.assertIn('NIF', text)
         self.assertIn('Documento de identidad electrónico', text)
-        self.assertEqual(3, len(self.document_clipper_pdf_reader._pdf_image_to_text_method.call_args_list))
+        self.assertEqual(4, len(self.document_clipper_pdf_reader._pdf_image_to_text_method.call_args_list))
+
+    def test_pdf_to_text_from_pdf_with_images_no_jpg(self):
+        # Only one pbm is extracted, converted to jpg and pdf_to_text
+        self.pdf_file = open(PATH_TO_PDF_FILE_WITH_IMAGES_NO_JPG)
+        self.document_clipper_pdf_reader = DocumentClipperPdfReader(self.pdf_file)
+        self.document_clipper_pdf_reader.pdf_to_text(self._images_to_text_method_mocked())
+        self.assertEqual(1, len(self.document_clipper_pdf_reader._pdf_image_to_text_method.call_args_list))
