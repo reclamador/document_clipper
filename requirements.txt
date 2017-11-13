@@ -11,4 +11,4 @@ beautifulsoup4==4.6.0
 lxml==4.1.1
 -e git+https://github.com/reclamador/scraperwiki-python#egg=scraperwiki
 pilkit==2.0
-Pillow==4.2.1
+Pillow==4.3.0
