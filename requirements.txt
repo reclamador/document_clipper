@@ -8,7 +8,7 @@ coverage==4.4.2
 Sphinx==1.6.5
 mock==2.0.0
 beautifulsoup4==4.6.0
-lxml==3.3.2
+lxml==4.1.1
 -e git+https://github.com/reclamador/scraperwiki-python#egg=scraperwiki
 pilkit==2.0
 Pillow==4.2.1
