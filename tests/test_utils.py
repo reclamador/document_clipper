@@ -14,6 +14,7 @@ PATH_TO_PDF_FILE = os.path.join(CURRENT_DIR, 'sample-files/sample.pdf')
 PATH_TO_JPG_FILE = os.path.join(CURRENT_DIR, 'sample-files/sample.jpg')
 PATH_TO_NEW_PDF_FILE = os.path.join(CURRENT_DIR, 'new_pdf.pdf')
 PATH_TO_PDF_FILE_WITH_IMAGES = os.path.join(CURRENT_DIR, 'sample-files/dni_samples.pdf')
+PATH_TO_PDF_FILE_WITH_IMAGES_NO_JPG = os.path.join(CURRENT_DIR, 'sample-files/pdf_with_images_not_jpg.pdf')
 
 
 class TestShellCommands(TestCase):
@@ -48,6 +49,16 @@ class TestShellCommands(TestCase):
         self.assertIn('jpeg', out)
         self.assertIn('image', out)
 
+    def test_pdf_has_images(self):
+        pdflistimages_cmd = PDFListImagesCommand()
+        out = pdflistimages_cmd.run(PATH_TO_PDF_FILE_WITH_IMAGES, 1)
+        self.assertTrue(pdflistimages_cmd.has_images(out))
+
+    def test_pdf_has_images_no_jpg(self):
+        pdflistimages_cmd = PDFListImagesCommand()
+        out = pdflistimages_cmd.run(PATH_TO_PDF_FILE_WITH_IMAGES_NO_JPG, 1)
+        self.assertTrue(pdflistimages_cmd.has_images(out))
+
     def test_pdf_images_list_no_pdf(self):
         pdflistimages_cmd = PDFListImagesCommand()
         self.assertRaises(ShellCommandError, pdflistimages_cmd.run, PATH_TO_JPG_FILE, 1)
@@ -67,3 +78,8 @@ class TestShellCommands(TestCase):
     def test_pdf_images_no_pdf(self):
         pdftoimages_cmd = PDFToImagesCommand()
         self.assertRaises(ShellCommandError, pdftoimages_cmd.run, PATH_TO_JPG_FILE, 1)
+
+    def test_pdf_images_no_jpg_found(self):
+        pdftoimages_cmd = PDFToImagesCommand()
+        out = pdftoimages_cmd.run(PATH_TO_PDF_FILE_WITH_IMAGES_NO_JPG, 1)
+        self.assertEqual(1, len(os.listdir(out)))

@@ -117,6 +117,16 @@ class DocumentClipperPdfReader:
 
         return self._str_list_to_int_list(params)
 
+    def _convert_to_jpg(self, image_path):
+        img = Image.open(image_path)
+        if img.mode != "RGB":
+            img = img.convert("RGB")
+            base = os.path.splitext(image_path)[0]
+            new_image_path = base + '.jpg'
+            img.save(new_image_path, 'JPEG')
+            image_path = new_image_path
+        return image_path
+
     def _pdf_page_to_text(self, page):
         pdftotext_cmd = PDFToTextCommand()
         pdflistimages_cmd = PDFListImagesCommand()
@@ -126,8 +136,10 @@ class DocumentClipperPdfReader:
         if pdflistimages_cmd.has_images(images_out):
             images_dir = pdfimages_cmd.run(self.pdf_file.name, page)
             for f in os.listdir(images_dir):
-                if path.isfile('/'.join([images_dir, f])) and f.endswith('.jpg'):
-                    text_out += self._pdf_image_to_text_method('/'.join([images_dir, f]))
+                f_path = '/'.join([images_dir, f])
+                if path.isfile(f_path):
+                    f_path = self._convert_to_jpg(f_path)
+                    text_out += self._pdf_image_to_text_method(f_path)
             shutil.rmtree(images_dir)
         return text_out
 

@@ -81,4 +81,4 @@ class PDFListImagesCommand(ShellCommand):
         return stdout
 
     def has_images(self, out):
-        return 'image' and 'jpeg' in out
+        return 'image' in out
