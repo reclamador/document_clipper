@@ -107,6 +107,8 @@ class TestDocumentClipperPdf(TestCase):
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 1)
+        new_pdf.close()
+        os.remove(new_pdf_path)
 
     def test_merge_pdfs_without_rotation(self):
         actions = [(self.pdf_file.name, 0), (self.pdf_file.name, 0)]

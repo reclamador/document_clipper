@@ -3,6 +3,7 @@ import re
 import logging
 import imghdr
 import os
+import shutil
 from os import path
 from scraperwiki import pdftoxml
 from bs4 import BeautifulSoup
@@ -127,6 +128,7 @@ class DocumentClipperPdfReader:
             for f in os.listdir(images_dir):
                 if path.isfile('/'.join([images_dir, f])) and f.endswith('.jpg'):
                     text_out += self._pdf_image_to_text_method('/'.join([images_dir, f]))
+            shutil.rmtree(images_dir)
         return text_out
 
     def pdf_to_text(self, pdf_image_to_text_method=None):
@@ -210,20 +212,22 @@ class DocumentClipperPdfWriter:
             logging.info(u"Parse '%s'" % pdf_file_path)
 
             try:
-                document = PdfFileReader(open(pdf_file_path, 'rb'), strict=False)
+                document_file = open(pdf_file_path, 'rb')
+                document = PdfFileReader(document_file, strict=False)
                 num_pages = document.getNumPages()
             except Exception as exc:
                 logging.exception("Error merging pdf %s: %s" % (pdf_file_path, str(exc)))
                 raise DocumentClipperError
+            with document_file:
+                # Rotation must be performed per page, not per document
+                for num_page in range(num_pages):
+                    page = document.getPage(num_page)
+                    page = page.rotateCounterClockwise(rotation)
+                    output.addPage(page)
 
-            # Rotation must be performed per page, not per document
-            for num_page in range(num_pages):
-                page = document.getPage(num_page)
-                page = page.rotateCounterClockwise(rotation)
-                output.addPage(page)
+                if append_blank_page:
+                    output.addBlankPage()
 
-            if append_blank_page:
-                output.addBlankPage()
 
         self._write_to_pdf(output, final_pdf_path)
 
@@ -237,17 +241,23 @@ class DocumentClipperPdfWriter:
         :return:
         """
         real_actions = []
+        tmp_to_delete_paths = []
         for file_path, rotation in actions:
             if imghdr.what(file_path):
                 img = Image.open(file_path)
                 path = self.image_to_pdf(img)
                 action = (path, rotation)
                 real_actions.append(action)
+                tmp_to_delete_paths.append(path)
             else:
                 action = (file_path, rotation)
                 real_actions.append(action)
 
         self.merge_pdfs(final_pdf_path, real_actions, append_blank_page)
+
+        for path_to_delete in tmp_to_delete_paths:
+            os.remove(path_to_delete)
+
 
     def slice(self, pdf_file_path, page_actions, final_pdf_path):
         """
@@ -258,23 +268,24 @@ class DocumentClipperPdfWriter:
         :return: None. Writes the resulting PDF file into the provided path.
         """
         output = PdfFileWriter()
-        input = PdfFileReader(open(pdf_file_path, 'rb'), strict=False)
+        with open(pdf_file_path, 'rb') as file_input:
+            input = PdfFileReader(file_input, strict=False)
 
-        # Check page actions correspond to valid input PDF pages
-        input_num_pages = input.getNumPages()
-        actions_page_numbers = zip(*page_actions)[0]
-        largest_page_num = max(actions_page_numbers)
-        lowest_page_num = min(actions_page_numbers)
+            # Check page actions correspond to valid input PDF pages
+            input_num_pages = input.getNumPages()
+            actions_page_numbers = zip(*page_actions)[0]
+            largest_page_num = max(actions_page_numbers)
+            lowest_page_num = min(actions_page_numbers)
 
-        if lowest_page_num < 1:
-            raise Exception(u"Invalid page numbers range in actions: page numbers cannot be lower than 1.")
+            if lowest_page_num < 1:
+                raise Exception(u"Invalid page numbers range in actions: page numbers cannot be lower than 1.")
 
-        if (largest_page_num - 1) > input_num_pages:
-            raise Exception(u"Invalid page numbers range in actions: page numbers cannot exceed the maximum numbers"
-                            u"of pages of the source PDF document.")
+            if (largest_page_num - 1) > input_num_pages:
+                raise Exception(u"Invalid page numbers range in actions: page numbers cannot exceed the maximum numbers"
+                                u"of pages of the source PDF document.")
 
-        # Perform actual slicing + rotation
-        for num_page, rotation in page_actions:
-            output.addPage(input.getPage(num_page-1).rotateCounterClockwise(rotation) if rotation
-                           else input.getPage(num_page-1))
-        self._write_to_pdf(output, final_pdf_path)
+            # Perform actual slicing + rotation
+            for num_page, rotation in page_actions:
+                output.addPage(input.getPage(num_page-1).rotateCounterClockwise(rotation) if rotation
+                               else input.getPage(num_page-1))
+            self._write_to_pdf(output, final_pdf_path)

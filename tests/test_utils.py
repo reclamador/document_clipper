@@ -3,6 +3,7 @@
 
 from unittest import TestCase
 import os
+import shutil
 from document_clipper.utils import PDFToTextCommand, PDFToImagesCommand, PDFListImagesCommand
 from document_clipper.exceptions import ShellCommandError
 from PIL import Image
@@ -55,11 +56,13 @@ class TestShellCommands(TestCase):
         pdftoimages_cmd = PDFToImagesCommand()
         out = pdftoimages_cmd.run(PATH_TO_PDF_FILE, 1)
         self.assertEqual(0, len(os.listdir(out)))
+        shutil.rmtree(out)
 
     def test_pdf_images_found(self):
         pdftoimages_cmd = PDFToImagesCommand()
         out = pdftoimages_cmd.run(PATH_TO_PDF_FILE_WITH_IMAGES, 1)
         self.assertEqual(4, len(os.listdir(out)))
+        shutil.rmtree(out)
 
     def test_pdf_images_no_pdf(self):
         pdftoimages_cmd = PDFToImagesCommand()
