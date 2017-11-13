@@ -17,6 +17,10 @@ document-clipper
      :target: https://pyup.io/repos/github/reclamador/document_clipper/
      :alt: Updates
 
+.. image:: https://coveralls.io/repos/github/reclamador/document_clipper/badge.svg?branch=master
+     :target: https://coveralls.io/github/reclamador/document_clipper?branch=master
+
+
 
 A set of utility classes and functions to process documents with Python
 
