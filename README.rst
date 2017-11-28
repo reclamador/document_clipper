@@ -54,3 +54,6 @@ Features
 
 * Fetch the number of pages associated to a PDF file.
 * Extract the coordinates and dimensions of a given text located in a PDF file.
+* Combine multiple PDFs into a single PDF.
+* Combine multiple PDF **and image** files into a single PDF.
+* Generate a new PDF file containing a subset of a provided source PDF file's pages. Rotations can be applied to each page individually.
