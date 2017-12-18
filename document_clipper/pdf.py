@@ -178,6 +178,10 @@ class DocumentClipperPdfWriter:
         output.write(output_stream)
         output_stream.close()
 
+    def _close_files(self, files_to_close):
+        for file in files_to_close:
+            file.close()
+
     def image_to_pdf(self, img, pdf_path=None, **kwargs):
         """
         Convert image to pdf.
@@ -214,6 +218,8 @@ class DocumentClipperPdfWriter:
 
         output = PdfFileWriter()
 
+        docs_to_close = []
+
         for num_doc, (pdf_file_path, rotation) in enumerate(actions):
             if pdf_file_path == final_pdf_path:
                 continue
@@ -230,18 +236,22 @@ class DocumentClipperPdfWriter:
             except Exception as exc:
                 logging.exception("Error merging pdf %s: %s" % (pdf_file_path, str(exc)))
                 raise DocumentClipperError
-            with document_file:
-                # Rotation must be performed per page, not per document
-                for num_page in range(num_pages):
-                    page = document.getPage(num_page)
-                    page = page.rotateCounterClockwise(rotation)
-                    output.addPage(page)
+            # Rotation must be performed per page, not per document
+            for num_page in range(num_pages):
+                page = document.getPage(num_page)
+                page = page.rotateCounterClockwise(rotation)
+                output.addPage(page)
 
-                if append_blank_page:
-                    output.addBlankPage()
+            if append_blank_page:
+                output.addBlankPage()
+
+            docs_to_close.append(document_file)
 
 
         self._write_to_pdf(output, final_pdf_path)
+
+        self._close_files(docs_to_close)
+
 
     def merge(self, final_pdf_path, actions, append_blank_page=False):
         """
