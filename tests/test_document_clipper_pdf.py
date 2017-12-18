@@ -14,6 +14,7 @@ PATH_TO_JPG_FILE = os.path.join(CURRENT_DIR, 'sample-files/sample.jpg')
 PATH_TO_NEW_PDF_FILE = os.path.join(CURRENT_DIR, 'new_pdf.pdf')
 PATH_TO_PDF_FILE_WITH_IMAGES = os.path.join(CURRENT_DIR, 'sample-files/dni_samples.pdf')
 PATH_TO_PDF_FILE_WITH_IMAGES_NO_JPG = os.path.join(CURRENT_DIR, 'sample-files/pdf_with_images_not_jpg.pdf')
+PATH_TO_HORIZONTAL_JPG_FILE = os.path.join(CURRENT_DIR, 'sample-files/horizontal-image-border.jpg')
 
 
 class TestDocumentClipperPdf(TestCase):
@@ -110,6 +111,27 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(len(pages), 1)
         new_pdf.close()
         os.remove(new_pdf_path)
+
+    def test_horizontal_image_to_vertical_pdf(self):
+        actions = [
+            (self.pdf_file.name, 0),
+            (PATH_TO_HORIZONTAL_JPG_FILE, 90)
+        ]
+        self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions)
+
+        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
+        new_document_clipper_pdf_reader.pdf_to_xml()
+        pages = new_document_clipper_pdf_reader.get_pages()
+
+        self.assertEqual(len(pages), 11)
+        page_with_image = pages[-1]
+        image_width, image_height = new_document_clipper_pdf_reader.get_page_max_dimensions(page_with_image)
+
+        expected_width = 2008.0
+        expected_height = 2677.0
+        self.assertEqual(image_width, expected_width)
+        self.assertEqual(image_height, expected_height)
 
     def test_merge_pdfs_without_rotation(self):
         actions = [(self.pdf_file.name, 0), (self.pdf_file.name, 0)]

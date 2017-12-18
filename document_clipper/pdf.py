@@ -190,12 +190,16 @@ class DocumentClipperPdfWriter:
         :param kwargs: any parameter accepted by Image.save i.e. quality
         :return:
         """
-        processor = ResizeToFit(self.MAX_SIZE_WITH_MARGINS[0], self.MAX_SIZE_WITH_MARGINS[1])
+        processor = ResizeToFit(width=self.max_size_in_pixels[0], height=self.max_size_in_pixels[1])
         img = processor.process(img)
         # Create a white canvas and paste the image
-        tmp_image = Image.new("RGB", self.max_size_in_pixels, "white")
-        tmp_image.paste(img, (self.margin_left, self.margin_top,
-                        self.margin_left + img.size[0], self.margin_top + img.size[1]))
+        final_img_width = min(img.size[0], self.max_size_in_pixels[0])
+        final_img_height = min(img.size[1], self.max_size_in_pixels[1])
+        tmp_image = Image.new("RGB", (final_img_width, final_img_height), "white")
+        margin_left = 0
+        margin_top = 0
+        tmp_image.paste(img, (margin_left, margin_top,
+                              final_img_width, final_img_height))
 
         # Save the image as .pdf file
         if not pdf_path:
