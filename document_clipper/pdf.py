@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 import re
 import logging
 import imghdr
 import os
+import random
 import shutil
+import subprocess
+import string
 from os import path
 from scraperwiki import pdftoxml
 from bs4 import BeautifulSoup
@@ -182,6 +186,31 @@ class DocumentClipperPdfWriter:
         for file in files_to_close:
             file.close()
 
+    def fix_pdf(self, in_path):
+        """
+        Performs a call to the 'pdftocairo' poppler-utils cli-tool to generate a
+        non-corrupted, well-formatted PDF file in the tmp directory from an input
+        possibly-corrupted PDF file path.
+        :param in_path: the possibly-corrupted PDF file path.
+        :return: the corrected PDF file path if the 'pdftocairo' command succeeded.
+        Otherwise, return the original input PDF file path.
+        """
+        in_filename = os.path.basename(in_path)
+
+        random.seed(datetime.now())
+        filename_prefix = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
+        path_to_corrected_pdf = u"/tmp/%s_%s" % (filename_prefix, in_filename)
+
+        fixer_process = subprocess.Popen(['/usr/bin/pdftocairo', '-pdf',
+                                          in_path, path_to_corrected_pdf],
+                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, error = fixer_process.communicate()
+        if error:
+            return in_path
+        else:
+            os.remove(in_path)
+            return path_to_corrected_pdf
+
     def image_to_pdf(self, img, pdf_path=None, **kwargs):
         """
         Convert image to pdf.
@@ -208,13 +237,14 @@ class DocumentClipperPdfWriter:
         tmp_image.save(pdf_path, "PDF", resolution=100.0, **kwargs)
         return pdf_path
 
-    def merge_pdfs(self, final_pdf_path, actions, append_blank_page=True):
+    def merge_pdfs(self, final_pdf_path, actions, append_blank_page=True, fix_files=False):
         """
         Merge pdf files in only one PDF
         :param final_pdf_path: file path to save pdf
         :param actions: list of tuples, each tuple containing a PDF file path and the degrees of counterclockwise
         rotation to perform on the PDF document.
         :param append_blank_page: append a blank page between documents if True.
+        :param fix_files: attempt to correct all the incoming PDF file paths.
         :return:
         """
 
@@ -234,7 +264,10 @@ class DocumentClipperPdfWriter:
             logging.info(u"Parse '%s'" % pdf_file_path)
 
             try:
-                document_file = open(pdf_file_path, 'rb')
+                path_to_file = pdf_file_path
+                if fix_files:
+                    path_to_file = self.fix_pdf(pdf_file_path)
+                document_file = open(path_to_file, 'rb')
                 document = PdfFileReader(document_file, strict=False)
                 num_pages = document.getNumPages()
             except Exception as exc:
@@ -256,8 +289,7 @@ class DocumentClipperPdfWriter:
 
         self._close_files(docs_to_close)
 
-
-    def merge(self, final_pdf_path, actions, append_blank_page=False):
+    def merge(self, final_pdf_path, actions, append_blank_page=False, fix_files=False):
         """
         Merge files (images and pdfs) in to one PDF
         :param final_pdf_path: file path to save pdf
@@ -279,13 +311,12 @@ class DocumentClipperPdfWriter:
                 action = (file_path, rotation)
                 real_actions.append(action)
 
-        self.merge_pdfs(final_pdf_path, real_actions, append_blank_page)
+        self.merge_pdfs(final_pdf_path, real_actions, append_blank_page, fix_files)
 
         for path_to_delete in tmp_to_delete_paths:
             os.remove(path_to_delete)
 
-
-    def slice(self, pdf_file_path, page_actions, final_pdf_path):
+    def slice(self, pdf_file_path, page_actions, final_pdf_path, fix_file=False):
         """
         Create new pdf from a slice of pages of a PDF
         :param pdf_file_path: path of the source PDF document, from which a new PDF file will be created.
@@ -294,11 +325,15 @@ class DocumentClipperPdfWriter:
         :return: None. Writes the resulting PDF file into the provided path.
         """
         output = PdfFileWriter()
-        with open(pdf_file_path, 'rb') as file_input:
-            input = PdfFileReader(file_input, strict=False)
+        input_pdf_path = pdf_file_path
+        if fix_file:
+            input_pdf_path = self.fix_pdf(input_pdf_path)
+
+        with open(input_pdf_path, 'rb') as file_input:
+            input_reader = PdfFileReader(file_input, strict=False)
 
             # Check page actions correspond to valid input PDF pages
-            input_num_pages = input.getNumPages()
+            input_num_pages = input_reader.getNumPages()
             actions_page_numbers = zip(*page_actions)[0]
             largest_page_num = max(actions_page_numbers)
             lowest_page_num = min(actions_page_numbers)
@@ -312,6 +347,6 @@ class DocumentClipperPdfWriter:
 
             # Perform actual slicing + rotation
             for num_page, rotation in page_actions:
-                output.addPage(input.getPage(num_page-1).rotateCounterClockwise(rotation) if rotation
-                               else input.getPage(num_page-1))
+                output.addPage(input_reader.getPage(num_page-1).rotateCounterClockwise(rotation) if rotation
+                               else input_reader.getPage(num_page-1))
             self._write_to_pdf(output, final_pdf_path)
