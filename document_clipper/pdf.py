@@ -188,12 +188,10 @@ class DocumentClipperPdfWriter:
 
     def fix_pdf(self, in_path):
         """
-        Performs a call to the 'pdftocairo' poppler-utils cli-tool to generate a
-        non-corrupted, well-formatted PDF file in the tmp directory from an input
-        possibly-corrupted PDF file path.
+        Generates a non-corrupted, well-formatted PDF file from an input
+        possibly-corrupted PDF file path, placed at a temporary directory.
         :param in_path: the possibly-corrupted PDF file path.
-        :return: the corrected PDF file path if the 'pdftocairo' command succeeded.
-        Otherwise, return the original input PDF file path.
+        :return: the corrected PDF file path successful. Otherwise, return the original input PDF file path.
         """
         in_filename = os.path.basename(in_path)
 
@@ -213,9 +211,10 @@ class DocumentClipperPdfWriter:
 
     def image_to_pdf(self, img, pdf_path=None, **kwargs):
         """
-        Convert image to pdf.
-        :param img: image file opened by PIL
-        :param pdf_path: path to save pdf
+        Converts an input image file to a PDF file.
+        :param img: image file opened with the PIL library.
+        :param pdf_path: optional parameter indicating file path of the to-be-generated PDF file.
+        A temporary file is created if no value is provided.
         :param kwargs: any parameter accepted by Image.save i.e. quality
         :return:
         """
@@ -239,17 +238,15 @@ class DocumentClipperPdfWriter:
 
     def merge_pdfs(self, final_pdf_path, actions, append_blank_page=True, fix_files=False):
         """
-        Merge pdf files in only one PDF
-        :param final_pdf_path: file path to save pdf
-        :param actions: list of tuples, each tuple containing a PDF file path and the degrees of counterclockwise
+        Generate a single PDF file containing the combined contents of the input PDF files.
+        :param final_pdf_path: file path to save the merged PDF file.
+        :param actions: list of tuples, each tuple containing a PDF file path and the degrees of the counterclockwise
         rotation to perform on the PDF document.
-        :param append_blank_page: append a blank page between documents if True.
-        :param fix_files: attempt to correct all the incoming PDF file paths.
-        :return:
+        :param append_blank_page: optional flag to indicate whether to append a blank page between documents.
+        :param fix_files: optional flat to indicate whether to attempt to correct all the source PDF files.
+        :return: None. Generates a single PDF file with the contents of the input PDF files and
+        removes any temporary files.
         """
-
-        """ Merge all pdf of a folder in one single file '.pdf'. """
-
         output = PdfFileWriter()
 
         docs_to_close = []
@@ -284,7 +281,6 @@ class DocumentClipperPdfWriter:
 
             docs_to_close.append(document_file)
 
-
         self._write_to_pdf(output, final_pdf_path)
 
         self._close_files(docs_to_close)
@@ -296,7 +292,10 @@ class DocumentClipperPdfWriter:
         :param actions: list of tuples, each tuple consisting of a PDF file path, and the amount of clockwise rotation
         to apply to the document.
         :param append_blank_page: append a blank page between documents if True.
-        :return:
+        :param fix_files: optional boolean flag that when set, attempts to fix the input PDF files provided
+        in the 'actions' parameter.
+        :return: None. Creates a PDF file in the specified path and removes the temporary files that were
+        created (if any).
         """
         real_actions = []
         tmp_to_delete_paths = []
@@ -320,8 +319,11 @@ class DocumentClipperPdfWriter:
         """
         Create new pdf from a slice of pages of a PDF
         :param pdf_file_path: path of the source PDF document, from which a new PDF file will be created.
-        :param pages_actions: list of tuples, each tuple containing the page number and the clockwise rotation to
+        :param page_actions: list of tuples, each tuple containing the page number and the clockwise rotation to
         be applied. The page number is non-zero indexed (first is page 1, and so on).
+        :param final_pdf_path: a string containing the file path of the generated PDF file.
+        :param fix_file: an optional boolean flag that when set, attempts to fix the input PDF file,
+        which could be possibly corrupted
         :return: None. Writes the resulting PDF file into the provided path.
         """
         output = PdfFileWriter()
