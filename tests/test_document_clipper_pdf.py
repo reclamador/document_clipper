@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from unittest import TestCase
-from mock import mock, Mock, patch
+from mock import Mock, patch
 import os
 
 from document_clipper.pdf import DocumentClipperPdfReader, DocumentClipperPdfWriter

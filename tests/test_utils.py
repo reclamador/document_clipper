@@ -4,7 +4,7 @@
 from unittest import TestCase
 import os
 import shutil
-from mock import mock, patch
+from mock import patch
 from document_clipper.utils import PDFToTextCommand, PDFToImagesCommand, PDFListImagesCommand, FixPdfCommand
 from document_clipper.exceptions import ShellCommandError
 from PIL import Image

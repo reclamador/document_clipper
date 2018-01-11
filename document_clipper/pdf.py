@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
 import re
 import logging
 import imghdr
@@ -67,8 +66,8 @@ class DocumentClipperPdfReader:
         @param text_to_find: the text to lookup in the 'pages' list in Unicode format
         @param start_page: optionally specify the starting position from which the 'pages' list should be iterated over.
         (default=0)
-        @return: a x_pdflist of dictionary items, where each item contains the page index (key 'page_idx') and the XML node
-        of type 'text' that contain the searched text (key 'content'). Empty list if none was found.
+        @return: a x_pdflist of dictionary items, where each item contains the page index (key 'page_idx') and the XML
+        node of type 'text' that contain the searched text (key 'content'). Empty list if none was found.
         """
         looked_up_pages = pages[slice(start_page, None)]  # From some start position to last item (inclusive)
         content = None
