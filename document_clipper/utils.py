@@ -101,15 +101,10 @@ class FixPdfCommand(ShellCommand):
         path_to_corrected_pdf = u"/tmp/%s_%s" % (filename_prefix, in_filename)
 
         try:
-            stdout, stderr = super(FixPdfCommand, self).run(['/usr/bin/pdftocairo', '-pdf',
-                                                        input_file_path, path_to_corrected_pdf])
+            super(FixPdfCommand, self).run(['/usr/bin/pdftocairo', '-pdf',
+                                            input_file_path, path_to_corrected_pdf])
         except exceptions.ShellCommandError:
             return input_file_path
-        except Exception, err:
-            print err
         else:
-            if stderr:
-                return input_file_path
-            else:
-                os.remove(input_file_path)
-                return path_to_corrected_pdf
+            os.remove(input_file_path)
+            return path_to_corrected_pdf

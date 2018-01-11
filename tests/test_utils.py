@@ -92,9 +92,8 @@ class TestShellCommands(TestCase):
         self.assertNotEqual(ret_file_path, PATH_TO_PDF_FILE)
         mock_os_remove.assert_called_with(PATH_TO_PDF_FILE)
 
-    @patch('document_clipper.utils.ShellCommand')
     @patch('os.remove')
-    def test_fix_pdf_command_error(self, mock_os_remove, mock_shell_command):
+    def test_fix_pdf_command_exception(self, mock_os_remove):
         invalid_file_path = u'/tmp/bla/file.pdf'
         fix_pdf_commmand = FixPdfCommand()
         ret_file_path = fix_pdf_commmand.run(invalid_file_path)
