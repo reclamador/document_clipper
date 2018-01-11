@@ -297,12 +297,9 @@ class TestDocumentClipperPdf(TestCase):
         self.assertIn(source_file_basename, ret_file_path)
         mock_os_remove.assert_called_with(PATH_TO_PDF_FILE)
 
-    @patch('document_clipper.pdf.subprocess')
     @patch('os.remove')
-    def test_fix_pdf_error(self, mock_os_remove, mock_subprocess):
-        mocked_fixer_process = mock_subprocess.Popen.return_value
-        mocked_fixer_process.communicate.return_value = None, mock.ANY
-
-        ret_file_path = self.document_clipper_pdf_writer.fix_pdf(PATH_TO_PDF_FILE)
-        self.assertEqual(ret_file_path, PATH_TO_PDF_FILE)
+    def test_fix_pdf_error(self, mock_os_remove):
+        invalid_path = u'/invalid/dir/file.pdf'
+        ret_file_path = self.document_clipper_pdf_writer.fix_pdf(invalid_path)
+        self.assertEqual(ret_file_path, invalid_path)
         mock_os_remove.assert_not_called()

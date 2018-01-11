@@ -4,10 +4,7 @@ import re
 import logging
 import imghdr
 import os
-import random
 import shutil
-import subprocess
-import string
 from os import path
 from scraperwiki import pdftoxml
 from bs4 import BeautifulSoup
@@ -15,7 +12,7 @@ from PyPDF2 import PdfFileWriter, PdfFileReader
 from pilkit.processors import ResizeToFit
 from PIL import Image
 from tempfile import NamedTemporaryFile
-from document_clipper.utils import PDFListImagesCommand, PDFToTextCommand, PDFToImagesCommand
+from document_clipper.utils import PDFListImagesCommand, PDFToTextCommand, PDFToImagesCommand, FixPdfCommand
 
 
 PAGE_TAG_NAME = u'page'
@@ -70,7 +67,7 @@ class DocumentClipperPdfReader:
         @param text_to_find: the text to lookup in the 'pages' list in Unicode format
         @param start_page: optionally specify the starting position from which the 'pages' list should be iterated over.
         (default=0)
-        @return: a list of dictionary items, where each item contains the page index (key 'page_idx') and the XML node
+        @return: a x_pdflist of dictionary items, where each item contains the page index (key 'page_idx') and the XML node
         of type 'text' that contain the searched text (key 'content'). Empty list if none was found.
         """
         looked_up_pages = pages[slice(start_page, None)]  # From some start position to last item (inclusive)
@@ -193,21 +190,8 @@ class DocumentClipperPdfWriter:
         :param in_path: the possibly-corrupted PDF file path.
         :return: the corrected PDF file path successful. Otherwise, return the original input PDF file path.
         """
-        in_filename = os.path.basename(in_path)
-
-        random.seed(datetime.now())
-        filename_prefix = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
-        path_to_corrected_pdf = u"/tmp/%s_%s" % (filename_prefix, in_filename)
-
-        fixer_process = subprocess.Popen(['/usr/bin/pdftocairo', '-pdf',
-                                          in_path, path_to_corrected_pdf],
-                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, error = fixer_process.communicate()
-        if error:
-            return in_path
-        else:
-            os.remove(in_path)
-            return path_to_corrected_pdf
+        fix_pdf_command = FixPdfCommand()
+        return fix_pdf_command.run(in_path)
 
     def image_to_pdf(self, img, pdf_path=None, **kwargs):
         """

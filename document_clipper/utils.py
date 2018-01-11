@@ -1,6 +1,10 @@
+from datetime import datetime
+import errno
+import os
+import random
+import string
 import subprocess
 import tempfile
-import errno
 
 from document_clipper import exceptions
 
@@ -82,3 +86,30 @@ class PDFListImagesCommand(ShellCommand):
 
     def has_images(self, out):
         return 'image' in out
+
+
+class FixPdfCommand(ShellCommand):
+    """
+    Creates a new PDF file from a possibly-corrupted or bad-formatted PDF file.
+    """
+
+    def run(self, input_file_path):
+        in_filename = os.path.basename(input_file_path)
+
+        random.seed(datetime.now())
+        filename_prefix = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
+        path_to_corrected_pdf = u"/tmp/%s_%s" % (filename_prefix, in_filename)
+
+        try:
+            stdout, stderr = super(FixPdfCommand, self).run(['/usr/bin/pdftocairo', '-pdf',
+                                                        input_file_path, path_to_corrected_pdf])
+        except exceptions.ShellCommandError:
+            return input_file_path
+        except Exception, err:
+            print err
+        else:
+            if stderr:
+                return input_file_path
+            else:
+                os.remove(input_file_path)
+                return path_to_corrected_pdf

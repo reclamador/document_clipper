@@ -4,7 +4,8 @@
 from unittest import TestCase
 import os
 import shutil
-from document_clipper.utils import PDFToTextCommand, PDFToImagesCommand, PDFListImagesCommand
+from mock import mock, patch
+from document_clipper.utils import PDFToTextCommand, PDFToImagesCommand, PDFListImagesCommand, FixPdfCommand
 from document_clipper.exceptions import ShellCommandError
 from PIL import Image
 
@@ -83,3 +84,19 @@ class TestShellCommands(TestCase):
         pdftoimages_cmd = PDFToImagesCommand()
         out = pdftoimages_cmd.run(PATH_TO_PDF_FILE_WITH_IMAGES_NO_JPG, 1)
         self.assertEqual(1, len(os.listdir(out)))
+
+    @patch('os.remove')
+    def test_fix_pdf_command_ok(self, mock_os_remove):
+        fix_pdf_command = FixPdfCommand()
+        ret_file_path = fix_pdf_command.run(PATH_TO_PDF_FILE)
+        self.assertNotEqual(ret_file_path, PATH_TO_PDF_FILE)
+        mock_os_remove.assert_called_with(PATH_TO_PDF_FILE)
+
+    @patch('document_clipper.utils.ShellCommand')
+    @patch('os.remove')
+    def test_fix_pdf_command_error(self, mock_os_remove, mock_shell_command):
+        invalid_file_path = u'/tmp/bla/file.pdf'
+        fix_pdf_commmand = FixPdfCommand()
+        ret_file_path = fix_pdf_commmand.run(invalid_file_path)
+        self.assertEqual(ret_file_path, invalid_file_path)
+        mock_os_remove.assert_not_called()
