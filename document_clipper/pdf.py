@@ -11,7 +11,7 @@ from PyPDF2 import PdfFileWriter, PdfFileReader
 from pilkit.processors import ResizeToFit
 from PIL import Image
 from tempfile import NamedTemporaryFile
-from document_clipper.utils import PDFListImagesCommand, PDFToTextCommand, PDFToImagesCommand
+from document_clipper.utils import PDFListImagesCommand, PDFToTextCommand, PDFToImagesCommand, FixPdfCommand
 
 
 PAGE_TAG_NAME = u'page'
@@ -66,8 +66,8 @@ class DocumentClipperPdfReader:
         @param text_to_find: the text to lookup in the 'pages' list in Unicode format
         @param start_page: optionally specify the starting position from which the 'pages' list should be iterated over.
         (default=0)
-        @return: a list of dictionary items, where each item contains the page index (key 'page_idx') and the XML node
-        of type 'text' that contain the searched text (key 'content'). Empty list if none was found.
+        @return: a x_pdflist of dictionary items, where each item contains the page index (key 'page_idx') and the XML
+        node of type 'text' that contain the searched text (key 'content'). Empty list if none was found.
         """
         looked_up_pages = pages[slice(start_page, None)]  # From some start position to last item (inclusive)
         content = None
@@ -182,11 +182,22 @@ class DocumentClipperPdfWriter:
         for file in files_to_close:
             file.close()
 
+    def fix_pdf(self, in_path):
+        """
+        Generates a non-corrupted, well-formatted PDF file from an input
+        possibly-corrupted PDF file path, placed at a temporary directory.
+        :param in_path: the possibly-corrupted PDF file path.
+        :return: the corrected PDF file path successful. Otherwise, return the original input PDF file path.
+        """
+        fix_pdf_command = FixPdfCommand()
+        return fix_pdf_command.run(in_path)
+
     def image_to_pdf(self, img, pdf_path=None, **kwargs):
         """
-        Convert image to pdf.
-        :param img: image file opened by PIL
-        :param pdf_path: path to save pdf
+        Converts an input image file to a PDF file.
+        :param img: image file opened with the PIL library.
+        :param pdf_path: optional parameter indicating file path of the to-be-generated PDF file.
+        A temporary file is created if no value is provided.
         :param kwargs: any parameter accepted by Image.save i.e. quality
         :return:
         """
@@ -208,18 +219,17 @@ class DocumentClipperPdfWriter:
         tmp_image.save(pdf_path, "PDF", resolution=100.0, **kwargs)
         return pdf_path
 
-    def merge_pdfs(self, final_pdf_path, actions, append_blank_page=True):
+    def merge_pdfs(self, final_pdf_path, actions, append_blank_page=True, fix_files=False):
         """
-        Merge pdf files in only one PDF
-        :param final_pdf_path: file path to save pdf
-        :param actions: list of tuples, each tuple containing a PDF file path and the degrees of counterclockwise
+        Generate a single PDF file containing the combined contents of the input PDF files.
+        :param final_pdf_path: file path to save the merged PDF file.
+        :param actions: list of tuples, each tuple containing a PDF file path and the degrees of the counterclockwise
         rotation to perform on the PDF document.
-        :param append_blank_page: append a blank page between documents if True.
-        :return:
+        :param append_blank_page: optional flag to indicate whether to append a blank page between documents.
+        :param fix_files: optional flat to indicate whether to attempt to correct all the source PDF files.
+        :return: None. Generates a single PDF file with the contents of the input PDF files and
+        removes any temporary files.
         """
-
-        """ Merge all pdf of a folder in one single file '.pdf'. """
-
         output = PdfFileWriter()
 
         docs_to_close = []
@@ -234,7 +244,10 @@ class DocumentClipperPdfWriter:
             logging.info(u"Parse '%s'" % pdf_file_path)
 
             try:
-                document_file = open(pdf_file_path, 'rb')
+                path_to_file = pdf_file_path
+                if fix_files:
+                    path_to_file = self.fix_pdf(pdf_file_path)
+                document_file = open(path_to_file, 'rb')
                 document = PdfFileReader(document_file, strict=False)
                 num_pages = document.getNumPages()
             except Exception as exc:
@@ -251,20 +264,21 @@ class DocumentClipperPdfWriter:
 
             docs_to_close.append(document_file)
 
-
         self._write_to_pdf(output, final_pdf_path)
 
         self._close_files(docs_to_close)
 
-
-    def merge(self, final_pdf_path, actions, append_blank_page=False):
+    def merge(self, final_pdf_path, actions, append_blank_page=False, fix_files=False):
         """
         Merge files (images and pdfs) in to one PDF
         :param final_pdf_path: file path to save pdf
         :param actions: list of tuples, each tuple consisting of a PDF file path, and the amount of clockwise rotation
         to apply to the document.
         :param append_blank_page: append a blank page between documents if True.
-        :return:
+        :param fix_files: optional boolean flag that when set, attempts to fix the input PDF files provided
+        in the 'actions' parameter.
+        :return: None. Creates a PDF file in the specified path and removes the temporary files that were
+        created (if any).
         """
         real_actions = []
         tmp_to_delete_paths = []
@@ -279,26 +293,32 @@ class DocumentClipperPdfWriter:
                 action = (file_path, rotation)
                 real_actions.append(action)
 
-        self.merge_pdfs(final_pdf_path, real_actions, append_blank_page)
+        self.merge_pdfs(final_pdf_path, real_actions, append_blank_page, fix_files)
 
         for path_to_delete in tmp_to_delete_paths:
             os.remove(path_to_delete)
 
-
-    def slice(self, pdf_file_path, page_actions, final_pdf_path):
+    def slice(self, pdf_file_path, page_actions, final_pdf_path, fix_file=False):
         """
         Create new pdf from a slice of pages of a PDF
         :param pdf_file_path: path of the source PDF document, from which a new PDF file will be created.
-        :param pages_actions: list of tuples, each tuple containing the page number and the clockwise rotation to
+        :param page_actions: list of tuples, each tuple containing the page number and the clockwise rotation to
         be applied. The page number is non-zero indexed (first is page 1, and so on).
+        :param final_pdf_path: a string containing the file path of the generated PDF file.
+        :param fix_file: an optional boolean flag that when set, attempts to fix the input PDF file,
+        which could be possibly corrupted
         :return: None. Writes the resulting PDF file into the provided path.
         """
         output = PdfFileWriter()
-        with open(pdf_file_path, 'rb') as file_input:
-            input = PdfFileReader(file_input, strict=False)
+        input_pdf_path = pdf_file_path
+        if fix_file:
+            input_pdf_path = self.fix_pdf(input_pdf_path)
+
+        with open(input_pdf_path, 'rb') as file_input:
+            input_reader = PdfFileReader(file_input, strict=False)
 
             # Check page actions correspond to valid input PDF pages
-            input_num_pages = input.getNumPages()
+            input_num_pages = input_reader.getNumPages()
             actions_page_numbers = zip(*page_actions)[0]
             largest_page_num = max(actions_page_numbers)
             lowest_page_num = min(actions_page_numbers)
@@ -312,6 +332,6 @@ class DocumentClipperPdfWriter:
 
             # Perform actual slicing + rotation
             for num_page, rotation in page_actions:
-                output.addPage(input.getPage(num_page-1).rotateCounterClockwise(rotation) if rotation
-                               else input.getPage(num_page-1))
+                output.addPage(input_reader.getPage(num_page-1).rotateCounterClockwise(rotation) if rotation
+                               else input_reader.getPage(num_page-1))
             self._write_to_pdf(output, final_pdf_path)
