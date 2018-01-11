@@ -31,10 +31,15 @@ A set of utility classes and functions to process documents with Python
 Installation
 ------------
 
-The `document_clipper` package uses libraries that rely on the `pdftohtml` command line util. It can be obtained by
-installing the `poppler-utils` package.
+The `document_clipper` package uses libraries that relies on several command-line tools included in the
+`poppler-utils` package such as:
+- `pdftohtml`
+- `pdfimages`
+- `pftocairo`
 
-For instance, in Ubuntu, run the following:
+Before attempting to use `document_clipper`, please install the `poppler-utils` package.
+
+For instance, in Ubuntu, you may do so by running the following command:
 
 .. code-block:: bash
 
@@ -57,3 +62,4 @@ Features
 * Combine multiple PDFs into a single PDF.
 * Combine multiple PDF **and image** files into a single PDF.
 * Generate a new PDF file containing a subset of a provided source PDF file's pages. Rotations can be applied to each page individually.
+* Optionally fix the document(s) involved in the slicing/merging processes beforehand.
