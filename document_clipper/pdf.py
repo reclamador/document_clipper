@@ -296,7 +296,13 @@ class DocumentClipperPdfWriter:
         self.merge_pdfs(final_pdf_path, real_actions, append_blank_page, fix_files)
 
         for path_to_delete in tmp_to_delete_paths:
-            os.remove(path_to_delete)
+            # Tmp files to be deleted may already have been deleted due to a pdf fixing process (which already
+            # deletes the bad-formatted PDF file). Skip the triggered exception, since file could be already deleted.
+            try:
+                os.remove(path_to_delete)
+            except OSError:
+                logging.warning("Cannot delete file with file path %s. It seems it was already deleted."
+                                % path_to_delete)
 
     def slice(self, pdf_file_path, page_actions, final_pdf_path, fix_file=False):
         """
