@@ -36,7 +36,8 @@ class DocumentClipperPdfReader:
         if self._pdf_to_xml:
             try:
                 for image in self._pdf_to_xml.findAll('image'):
-                    os.remove(image['src'])
+                    if image.get('src'):
+                        os.remove(image['src'])
             except:
                 logging.exception(u"Error cleaning up '%s'" % self.pdf_file.name)
 
