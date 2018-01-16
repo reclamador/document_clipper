@@ -29,6 +29,17 @@ class DocumentClipperPdfReader:
         self._pdf_to_xml = None
         self._pdf_image_to_text_method = pdf_image_to_text_method
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self._pdf_to_xml:
+            try:
+                for image in self._pdf_to_xml.findAll('image'):
+                    os.remove(image['src'])
+            except:
+                logging.exception(u"Error cleaning up '%s'" % self.pdf_file.name)
+
     def _read_file(self):
         """
         :return: the contents of the PDF file loaded into the instance

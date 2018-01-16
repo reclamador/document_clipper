@@ -35,7 +35,6 @@ class TestDocumentClipperPdf(TestCase):
 
     def test_pdf_to_xml_ok(self):
         pdf_to_xml = self.document_clipper_pdf_reader.pdf_to_xml()
-
         self.assertTrue(pdf_to_xml.is_xml)
         self.assertIsNotNone(pdf_to_xml.contents)
 
@@ -320,3 +319,24 @@ class TestDocumentClipperPdf(TestCase):
         ret_file_path = self.document_clipper_pdf_writer.fix_pdf(invalid_path)
         self.assertEqual(ret_file_path, invalid_path)
         mock_os_remove.assert_not_called()
+
+    @patch('os.remove')
+    def test_cleaning_up_beacuse_of_pdf_to_xml_tmp_images(self, mock_remove):
+        self.pdf_file = open(PATH_TO_PDF_FILE_WITH_IMAGES)
+        with DocumentClipperPdfReader(self.pdf_file) as document_clipper_pdf_reader:
+            pdf_to_xml = document_clipper_pdf_reader.pdf_to_xml()
+
+        self.assertTrue(pdf_to_xml.is_xml)
+        self.assertIsNotNone(pdf_to_xml.contents)
+        # remove for images from tmp
+        self.assertEqual(len(mock_remove.call_args_list), 4)
+
+    @patch('os.remove')
+    def test_cleaning_up_beacuse_of_pdf_to_xml_tmp_images_nothing_to_clean(self, mock_remove):
+        with DocumentClipperPdfReader(self.pdf_file) as document_clipper_pdf_reader:
+            pdf_to_xml = document_clipper_pdf_reader.pdf_to_xml()
+
+        self.assertTrue(pdf_to_xml.is_xml)
+        self.assertIsNotNone(pdf_to_xml.contents)
+        # remove for images from tmp
+        self.assertEqual(len(mock_remove.call_args_list), 0)
