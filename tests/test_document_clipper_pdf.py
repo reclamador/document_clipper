@@ -210,9 +210,8 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(len(pages), 11)
         mock_os_remove.assert_called()
 
-    @patch('document_clipper.pdf.logging')
     @patch('os.remove')
-    def test_merge_images_with_pdf_fixing(self, mock_os_remove, mock_logging):
+    def test_merge_images_with_pdf_fixing(self, mock_os_remove):
         # Setup
         mock_os_remove.side_effect = [None, None, OSError('already deleted'), OSError('already deleted')]
         actions = [(PATH_TO_HORIZONTAL_JPG_FILE, 0), (PATH_TO_JPG_FILE, 90)]
@@ -224,8 +223,6 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(len(pages), 2)
         num_os_remove_calls = len(mock_os_remove.call_args_list[0])
         self.assertEqual(num_os_remove_calls, 2)
-        num_logging_calls = len(mock_logging.warning.call_args_list[0])
-        self.assertEqual(num_logging_calls, 2)
 
     @patch('os.remove')
     def test_merge_files_with_blank_page(self, mock_os_remove):
