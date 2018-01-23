@@ -245,14 +245,13 @@ class DocumentClipperPdfWriter(BaseDocumentClipperPdf):
         tmp_image.save(pdf_path, "PDF", resolution=100.0, **kwargs)
         return pdf_path
 
-    def merge_pdfs(self, final_pdf_path, actions, append_blank_page=True, fix_files=False):
+    def merge_pdfs(self, final_pdf_path, actions, append_blank_page=True):
         """
         Generate a single PDF file containing the combined contents of the input PDF files.
         :param final_pdf_path: file path to save the merged PDF file.
         :param actions: list of tuples, each tuple containing a PDF file path and the degrees of the counterclockwise
         rotation to perform on the PDF document.
         :param append_blank_page: optional flag to indicate whether to append a blank page between documents.
-        :param fix_files: optional flat to indicate whether to attempt to correct all the source PDF files.
         :return: None. Generates a single PDF file with the contents of the input PDF files and
         removes any temporary files.
         """
@@ -270,10 +269,7 @@ class DocumentClipperPdfWriter(BaseDocumentClipperPdf):
             logging.info(u"Parse '%s'" % pdf_file_path)
 
             try:
-                path_to_file = pdf_file_path
-                if fix_files:
-                    path_to_file = self.fix_pdf(pdf_file_path)
-                document_file = open(path_to_file, 'rb')
+                document_file = open(pdf_file_path, 'rb')
                 document = PdfFileReader(document_file, strict=False)
                 num_pages = document.getNumPages()
             except Exception as exc:
@@ -316,10 +312,12 @@ class DocumentClipperPdfWriter(BaseDocumentClipperPdf):
                 real_actions.append(action)
                 tmp_to_delete_paths.append(path)
             else:
+                if fix_files:
+                    file_path = self.fix_pdf(file_path)
                 action = (file_path, rotation)
                 real_actions.append(action)
 
-        self.merge_pdfs(final_pdf_path, real_actions, append_blank_page, fix_files)
+        self.merge_pdfs(final_pdf_path, real_actions, append_blank_page)
 
         for path_to_delete in tmp_to_delete_paths:
             # Tmp files to be deleted may already have been deleted due to a pdf fixing process (which already
