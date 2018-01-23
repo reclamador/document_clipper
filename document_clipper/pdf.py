@@ -9,8 +9,9 @@ from scraperwiki import pdftoxml
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from pilkit.processors import ResizeToFit
+from pilkit.utils import save_image
 from PIL import Image
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryFile
 from document_clipper.utils import PDFListImagesCommand, PDFToTextCommand, PDFToImagesCommand, FixPdfCommand
 
 
@@ -23,7 +24,20 @@ class DocumentClipperError(Exception):
     pass
 
 
-class DocumentClipperPdfReader:
+class BaseDocumentClipperPdf(object):
+
+    def compress_img(self, img, quality=70):
+        """
+        Compress PIL image file to JPEG reducing quality
+        :param img: PIL image file
+        :param quality:
+        :return:
+        """
+        tmpfile = TemporaryFile()
+        return Image.open(save_image(img, tmpfile, 'JPEG', options={'quality': quality}))
+
+
+class DocumentClipperPdfReader(BaseDocumentClipperPdf):
     def __init__(self, pdf_file, pdf_image_to_text_method=None):
         self.pdf_file = pdf_file
         self._pdf_to_xml = None
@@ -170,7 +184,7 @@ class DocumentClipperPdfReader:
         return text
 
 
-class DocumentClipperPdfWriter:
+class DocumentClipperPdfWriter(BaseDocumentClipperPdf):
 
     MAX_SIZE_WITH_MARGINS = (2400, 3400)
     MAX_SIZE_IN_PIXELS = (2480, 3508)
@@ -223,7 +237,7 @@ class DocumentClipperPdfWriter:
         margin_top = 0
         tmp_image.paste(img, (margin_left, margin_top,
                               final_img_width, final_img_height))
-
+        tmp_image = self.compress_img(tmp_image, quality=70)
         # Save the image as .pdf file
         if not pdf_path:
             f = NamedTemporaryFile(delete=False)

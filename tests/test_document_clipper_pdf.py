@@ -12,7 +12,9 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 PATH_TO_PDF_FILE = os.path.join(CURRENT_DIR, 'sample-files/sample.pdf')
 PATH_TO_JPG_FILE = os.path.join(CURRENT_DIR, 'sample-files/sample.jpg')
+PATH_TO_PNG_FILE = os.path.join(CURRENT_DIR, 'sample-files/sample.png')
 PATH_TO_NEW_PDF_FILE = os.path.join(CURRENT_DIR, 'new_pdf.pdf')
+PATH_TO_NEW_JPG_FILE = os.path.join(CURRENT_DIR, 'new_image.jpg')
 PATH_TO_PDF_FILE_WITH_IMAGES = os.path.join(CURRENT_DIR, 'sample-files/dni_samples.pdf')
 PATH_TO_PDF_FILE_WITH_IMAGES_NO_JPG = os.path.join(CURRENT_DIR, 'sample-files/pdf_with_images_not_jpg.pdf')
 PATH_TO_HORIZONTAL_JPG_FILE = os.path.join(CURRENT_DIR, 'sample-files/horizontal-image-border.jpg')
@@ -110,6 +112,13 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(len(pages), 1)
         new_pdf.close()
         os.remove(new_pdf_path)
+
+    def test_compress_image(self):
+        self.img_file = Image.open(PATH_TO_PNG_FILE)
+        compressed_img = self.document_clipper_pdf_writer.compress_img(self.img_file)
+        compressed_img.save(PATH_TO_NEW_JPG_FILE)
+        self.assertTrue(os.path.getsize(PATH_TO_PNG_FILE) > os.path.getsize(PATH_TO_NEW_JPG_FILE))
+        os.remove(PATH_TO_NEW_JPG_FILE)
 
     @patch('os.remove')
     def test_horizontal_image_to_vertical_pdf(self, mock_os_remove):
