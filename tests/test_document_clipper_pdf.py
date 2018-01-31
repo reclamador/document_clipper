@@ -263,6 +263,16 @@ class TestDocumentClipperPdf(TestCase):
         mock_os_remove.assert_not_called()
 
     @patch('os.remove')
+    def test_slice_out_of_bounds_page_range(self, mock_os_remove):
+        page_actions = [(11, 0)]  # Sample PDF file has at most 10 pages
+
+        with self.assertRaisesRegexp(Exception, u'Invalid page numbers range in actions: '
+                                                u'page numbers cannot exceed the maximum numbers of '
+                                                u'pages of the source PDF document'):
+            self.document_clipper_pdf_writer.slice(self.pdf_file.name, page_actions, PATH_TO_NEW_PDF_FILE)
+            mock_os_remove.assert_called()
+
+    @patch('os.remove')
     def test_slice_with_pdf_fixing(self, mock_os_remove):
         page_actions = [(2, 0), (3, 0)]
         self.document_clipper_pdf_writer.slice(self.pdf_file.name, page_actions, PATH_TO_NEW_PDF_FILE, fix_file=True)
@@ -341,7 +351,7 @@ class TestDocumentClipperPdf(TestCase):
         mock_os_remove.assert_not_called()
 
     @patch('os.remove')
-    def test_cleaning_up_beacuse_of_pdf_to_xml_tmp_images(self, mock_remove):
+    def test_cleaning_up_because_of_pdf_to_xml_tmp_images(self, mock_remove):
         self.pdf_file = open(PATH_TO_PDF_FILE_WITH_IMAGES)
         with DocumentClipperPdfReader(self.pdf_file) as document_clipper_pdf_reader:
             pdf_to_xml = document_clipper_pdf_reader.pdf_to_xml()
@@ -352,7 +362,7 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(len(mock_remove.call_args_list), 4)
 
     @patch('os.remove')
-    def test_cleaning_up_beacuse_of_pdf_to_xml_tmp_images_nothing_to_clean(self, mock_remove):
+    def test_cleaning_up_because_of_pdf_to_xml_tmp_images_nothing_to_clean(self, mock_remove):
         with DocumentClipperPdfReader(self.pdf_file) as document_clipper_pdf_reader:
             pdf_to_xml = document_clipper_pdf_reader.pdf_to_xml()
 

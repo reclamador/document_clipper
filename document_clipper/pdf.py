@@ -353,14 +353,16 @@ class DocumentClipperPdfWriter(BaseDocumentClipperPdf):
             largest_page_num = max(actions_page_numbers)
             lowest_page_num = min(actions_page_numbers)
 
+            # Input page numbers are 1-indexed
             if lowest_page_num < 1:
                 raise Exception(u"Invalid page numbers range in actions: page numbers cannot be lower than 1.")
 
-            if (largest_page_num - 1) > input_num_pages:
-                raise Exception(u"Invalid page numbers range in actions: page numbers cannot exceed the maximum numbers"
-                                u"of pages of the source PDF document.")
+            if largest_page_num > input_num_pages:
+                raise Exception(u"Invalid page numbers range in actions: page numbers cannot exceed the maximum "
+                                u"numbers of pages of the source PDF document.")
 
             # Perform actual slicing + rotation
+            # Here page numbers must be normalized to be 0-indexed
             for num_page, rotation in page_actions:
                 output.addPage(input_reader.getPage(num_page-1).rotateCounterClockwise(rotation) if rotation
                                else input_reader.getPage(num_page-1))
