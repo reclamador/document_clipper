@@ -161,11 +161,16 @@ class DocumentClipperPdfReader(BaseDocumentClipperPdf):
         images_out = pdflistimages_cmd.run(self.pdf_file.name, page)
         if pdflistimages_cmd.has_images(images_out):
             images_dir = pdfimages_cmd.run(self.pdf_file.name, page)
-            for f in os.listdir(images_dir):
-                f_path = '/'.join([images_dir, f])
-                if path.isfile(f_path):
-                    f_path = self._convert_to_jpg(f_path)
-                    text_out += self._pdf_image_to_text_method(f_path)
+            try:
+                for f in os.listdir(images_dir):
+                    f_path = '/'.join([images_dir, f])
+                    if path.isfile(f_path):
+                        f_path = self._convert_to_jpg(f_path)
+                        text_out += self._pdf_image_to_text_method(f_path)
+            except Exception as e:
+                shutil.rmtree(images_dir)
+                logging.exception("Error extracting text from pdf image")
+                raise e
             shutil.rmtree(images_dir)
         return text_out
 

@@ -35,6 +35,11 @@ class TestDocumentClipperPdf(TestCase):
         method.return_value = 'llamada a metodo'
         return method
 
+    def _images_to_text_method_mocked_with_exception(self):
+        method = Mock()
+        method.side_effect = Exception
+        return method
+
     def test_pdf_to_xml_ok(self):
         pdf_to_xml = self.document_clipper_pdf_reader.pdf_to_xml()
         self.assertTrue(pdf_to_xml.is_xml)
@@ -313,6 +318,12 @@ class TestDocumentClipperPdf(TestCase):
         self.document_clipper_pdf_reader = DocumentClipperPdfReader(self.pdf_file)
         self.document_clipper_pdf_reader.pdf_to_text(self._images_to_text_method_mocked())
         self.assertEqual(1, len(self.document_clipper_pdf_reader._pdf_image_to_text_method.call_args_list))
+
+    def test_pdf_to_text_from_pdf_with_images_exception_raised(self):
+        self.pdf_file = open(PATH_TO_PDF_FILE_WITH_IMAGES)
+        self.document_clipper_pdf_reader = DocumentClipperPdfReader(self.pdf_file)
+        self.assertRaises(Exception, self.document_clipper_pdf_reader.pdf_to_text,
+                          self._images_to_text_method_mocked_with_exception())
 
     @patch('os.remove')
     def test_fix_pdf_ok(self, mock_os_remove):
