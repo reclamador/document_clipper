@@ -35,7 +35,7 @@ class ShellCommand(object):
                     ' '.join(args), 127, '', '',
                 )
             else:
-                raise exceptions.ShellCommandError(' '.join(args), e.errno or -1 , '', e.strerror or '')
+                raise exceptions.ShellCommandError(' '.join(args), e.errno or -1, '', e.strerror or '')
 
         # pipe.wait() ends up hanging on large files. using
         # pipe.communicate appears to avoid this issue
