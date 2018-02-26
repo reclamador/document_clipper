@@ -95,7 +95,28 @@ class TestShellCommands(TestCase):
     @patch('os.remove')
     def test_fix_pdf_command_exception(self, mock_os_remove):
         invalid_file_path = u'/tmp/bla/file.pdf'
-        fix_pdf_commmand = FixPdfCommand()
-        ret_file_path = fix_pdf_commmand.run(invalid_file_path)
+        fix_pdf_command = FixPdfCommand()
+        ret_file_path = fix_pdf_command.run(invalid_file_path)
         self.assertEqual(ret_file_path, invalid_file_path)
+        mock_os_remove.assert_not_called()
+
+    @patch('os.remove')
+    @patch('document_clipper.utils.subprocess.Popen')
+    def test_fix_pdf_command_os_error_exception(self, mock_open, mock_os_remove):
+        mocked_exception = OSError('Random os error')
+        mocked_exception.errno = None
+
+        fix_pdf_command = FixPdfCommand()
+        ret_file_path = fix_pdf_command.run(PATH_TO_PDF_FILE)
+        self.assertEqual(ret_file_path, PATH_TO_PDF_FILE)
+        mock_os_remove.assert_not_called()
+
+    @patch('os.remove')
+    @patch('document_clipper.utils.subprocess.Popen')
+    def test_fix_pdf_command_generic_exception(self, mock_popen, mock_os_remove):
+        mocked_exception = Exception('blabla')
+        mock_popen.side_effect = mocked_exception
+        fix_pdf_command = FixPdfCommand()
+        ret_file_path = fix_pdf_command.run(PATH_TO_PDF_FILE)
+        self.assertEqual(ret_file_path, PATH_TO_PDF_FILE)
         mock_os_remove.assert_not_called()
