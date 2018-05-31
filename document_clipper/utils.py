@@ -103,7 +103,7 @@ class FixPdfCommand(ShellCommand):
         path_to_corrected_pdf = u"/tmp/%s_%s" % (filename_prefix, in_filename)
 
         try:
-            super(FixPdfCommand, self).run(['/usr/bin/pdftocairo', '-pdf',
+            super(FixPdfCommand, self).run(['/usr/bin/pdftocairo', '-pdf', '-origpagesizes',
                                             input_file_path, path_to_corrected_pdf])
         except exceptions.ShellCommandError:
             return input_file_path
