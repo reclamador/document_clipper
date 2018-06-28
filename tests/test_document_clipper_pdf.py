@@ -157,7 +157,7 @@ class TestDocumentClipperPdf(TestCase):
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 20)
-        mock_os_remove.assert_not_called()
+        self.assertEqual(len(mock_os_remove.call_args_list), 2)
 
     @patch('os.remove')
     def test_merge_pdfs_with_pdf_fixing(self, mock_os_remove):
@@ -179,7 +179,7 @@ class TestDocumentClipperPdf(TestCase):
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 20)
-        mock_os_remove.assert_not_called()
+        self.assertEqual(len(mock_os_remove.call_args_list), 2)
 
     @patch('os.remove')
     def test_merge_pdfs_with_blank_page(self, mock_os_remove):
@@ -191,7 +191,7 @@ class TestDocumentClipperPdf(TestCase):
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 22)
-        mock_os_remove.assert_not_called()
+        self.assertEqual(len(mock_os_remove.call_args_list), 2)
 
     @patch('os.remove')
     def test_merge_files_without_rotation(self, mock_os_remove):
