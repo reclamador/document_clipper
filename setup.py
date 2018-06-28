@@ -29,7 +29,7 @@ test_requirements = [
 
 setup(
     name='document_clipper',
-    version='0.13.5',
+    version='0.13.6',
     description="A set of utility classes and functions to process documents with Python",
     long_description=readme + '\n\n' + history,
     author="Nick Jaremek",
