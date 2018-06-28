@@ -321,6 +321,7 @@ class DocumentClipperPdfWriter(BaseDocumentClipperPdf):
                     file_path = self.fix_pdf(file_path)
                 action = (file_path, rotation)
                 real_actions.append(action)
+                tmp_to_delete_paths.append(file_path)
 
         self.merge_pdfs(final_pdf_path, real_actions, append_blank_page)
 
