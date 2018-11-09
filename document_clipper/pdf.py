@@ -5,14 +5,15 @@ import imghdr
 import os
 import shutil
 from os import path
-from scraperwiki import pdftoxml
+import tempfile
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from pilkit.processors import ResizeToFit
 from pilkit.utils import save_image
 from PIL import Image
 from tempfile import NamedTemporaryFile, TemporaryFile
-from document_clipper.utils import PDFListImagesCommand, PDFToTextCommand, PDFToImagesCommand, FixPdfCommand
+from document_clipper.utils import PDFListImagesCommand, PDFToTextCommand, PDFToImagesCommand, FixPdfCommand, \
+    PdfToXMLCommand
 
 
 PAGE_TAG_NAME = u'page'
@@ -76,8 +77,12 @@ class DocumentClipperPdfReader(BaseDocumentClipperPdf):
         @return: a structure representing the PDF contents as XML nodes, suitable for programmatic manipulation.
         """
         pdf_file_contents = self._read_file()
-        pdf_contents_to_xml = pdftoxml(pdf_file_contents)
-        self._pdf_to_xml = BeautifulSoup(pdf_contents_to_xml, 'xml')
+        with tempfile.NamedTemporaryFile(suffix='.pdf') as pdffout:
+            pdffout.write(pdf_file_contents)
+            pdffout.flush()
+            pdftoxml_command = PdfToXMLCommand()
+            pdf_contents_to_xml = pdftoxml_command.run(pdffout.name)
+            self._pdf_to_xml = BeautifulSoup(pdf_contents_to_xml, 'xml')
         return self._pdf_to_xml
 
     def get_pages(self):
