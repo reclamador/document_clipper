@@ -14,8 +14,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'beautifulsoup4==4.3.2',
-    'lxml==3.3.2',
-    'scraperwiki==0.5.1',
+    'lxml==4.2.5',
     'pilkit==2.0',
     'PyPDF2==1.26.0',
     'Pillow==4.2.1',
@@ -29,7 +28,7 @@ test_requirements = [
 
 setup(
     name='document_clipper',
-    version='0.13.0',
+    version='0.14.0',
     description="A set of utility classes and functions to process documents with Python",
     long_description=readme + '\n\n' + history,
     author="Nick Jaremek",

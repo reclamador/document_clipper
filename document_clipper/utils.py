@@ -1,3 +1,4 @@
+from __future__ import absolute_import, division, print_function
 from datetime import datetime
 import errno
 import os
@@ -7,7 +8,6 @@ import subprocess
 import tempfile
 
 from document_clipper import exceptions
-
 
 
 class ShellCommand(object):
@@ -34,6 +34,8 @@ class ShellCommand(object):
                 raise exceptions.ShellCommandError(
                     ' '.join(args), 127, '', '',
                 )
+            else:
+                raise exceptions.ShellCommandError(' '.join(args), e.errno or -1, '', e.strerror or '')
 
         # pipe.wait() ends up hanging on large files. using
         # pipe.communicate appears to avoid this issue
@@ -75,6 +77,7 @@ class PDFToImagesCommand(ShellCommand):
                                                               file_name, '%s/%s' % (tmp_dir, str(page))])
         return tmp_dir
 
+
 class PDFListImagesCommand(ShellCommand):
     """
     pdfimages Poppler utils just check if there are images
@@ -85,7 +88,7 @@ class PDFListImagesCommand(ShellCommand):
         return stdout
 
     def has_images(self, out):
-        return 'image' in out
+        return b'image' in out
 
 
 class FixPdfCommand(ShellCommand):
@@ -101,10 +104,26 @@ class FixPdfCommand(ShellCommand):
         path_to_corrected_pdf = u"/tmp/%s_%s" % (filename_prefix, in_filename)
 
         try:
-            super(FixPdfCommand, self).run(['/usr/bin/pdftocairo', '-pdf',
+            super(FixPdfCommand, self).run(['/usr/bin/pdftocairo', '-pdf', '-origpagesizes',
                                             input_file_path, path_to_corrected_pdf])
         except exceptions.ShellCommandError:
+            return input_file_path
+        except Exception:
             return input_file_path
         else:
             os.remove(input_file_path)
             return path_to_corrected_pdf
+
+
+class PdfToXMLCommand(ShellCommand):
+
+    def run(self, pdf_file_path):
+        with tempfile.NamedTemporaryFile(mode='r', suffix='.xml') as xmlin:
+            tmpxml = os.path.splitext(xmlin.name)[0]
+            stdout, stderr = super(PdfToXMLCommand, self).run(['pdftohtml', '-xml', '-nodrm', '-zoom', '1.5',
+                                                               '-enc', 'UTF-8', '-noframes', pdf_file_path, tmpxml])
+            xmldata = xmlin.read()
+        try:
+            return xmldata.decode('utf-8')
+        except AttributeError:
+            return xmldata

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+from __future__ import absolute_import, division, print_function, unicode_literals
 from unittest import TestCase
 from mock import Mock, patch
 import os
@@ -22,7 +22,7 @@ PATH_TO_HORIZONTAL_JPG_FILE = os.path.join(CURRENT_DIR, 'sample-files/horizontal
 
 class TestDocumentClipperPdf(TestCase):
     def setUp(self):
-        self.pdf_file = open(PATH_TO_PDF_FILE)
+        self.pdf_file = open(PATH_TO_PDF_FILE, 'rb')
         self.img_file = Image.open(PATH_TO_JPG_FILE)
         self.document_clipper_pdf_reader = DocumentClipperPdfReader(self.pdf_file)
         self.document_clipper_pdf_writer = DocumentClipperPdfWriter()
@@ -32,7 +32,12 @@ class TestDocumentClipperPdf(TestCase):
 
     def _images_to_text_method_mocked(self):
         method = Mock()
-        method.return_value = 'llamada a metodo'
+        method.return_value = b'llamada a metodo'
+        return method
+
+    def _images_to_text_method_mocked_with_exception(self):
+        method = Mock()
+        method.side_effect = Exception
         return method
 
     def test_pdf_to_xml_ok(self):
@@ -105,7 +110,7 @@ class TestDocumentClipperPdf(TestCase):
 
     def test_image_to_pdf(self):
         new_pdf_path = self.document_clipper_pdf_writer.image_to_pdf(self.img_file)
-        new_pdf = open(new_pdf_path)
+        new_pdf = open(new_pdf_path, 'rb')
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
@@ -128,7 +133,7 @@ class TestDocumentClipperPdf(TestCase):
         ]
         self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions)
 
-        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE, 'rb')
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
@@ -147,18 +152,18 @@ class TestDocumentClipperPdf(TestCase):
     def test_merge_pdfs_without_rotation(self, mock_os_remove):
         actions = [(self.pdf_file.name, 0), (self.pdf_file.name, 0)]
         self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions)
-        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE, 'rb')
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 20)
-        mock_os_remove.assert_not_called()
+        self.assertEqual(len(mock_os_remove.call_args_list), 2)
 
     @patch('os.remove')
     def test_merge_pdfs_with_pdf_fixing(self, mock_os_remove):
         actions = [(self.pdf_file.name, 0), (self.pdf_file.name, 0)]
         self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions, fix_files=True)
-        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE, 'rb')
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
@@ -169,30 +174,30 @@ class TestDocumentClipperPdf(TestCase):
     def test_merge_pdfs_with_rotation(self, mock_os_remove):
         actions = [(self.pdf_file.name, 90), (self.pdf_file.name, 90)]
         self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions)
-        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE, 'rb')
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 20)
-        mock_os_remove.assert_not_called()
+        self.assertEqual(len(mock_os_remove.call_args_list), 2)
 
     @patch('os.remove')
     def test_merge_pdfs_with_blank_page(self, mock_os_remove):
         actions = [(self.pdf_file.name, 0), (self.pdf_file.name, 0)]
         self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions,
                                                append_blank_page=True)
-        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE, 'rb')
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 22)
-        mock_os_remove.assert_not_called()
+        self.assertEqual(len(mock_os_remove.call_args_list), 2)
 
     @patch('os.remove')
     def test_merge_files_without_rotation(self, mock_os_remove):
         actions = [(self.pdf_file.name, 0), (PATH_TO_JPG_FILE, 0)]
         self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions)
-        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE, 'rb')
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
@@ -203,36 +208,47 @@ class TestDocumentClipperPdf(TestCase):
     def test_merge_files_with_rotation(self, mock_os_remove):
         actions = [(self.pdf_file.name, 0), (PATH_TO_JPG_FILE, 90)]
         self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions)
-        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE, 'rb')
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 11)
         mock_os_remove.assert_called()
 
-    @patch('document_clipper.pdf.logging')
     @patch('os.remove')
-    def test_merge_images_with_pdf_fixing(self, mock_os_remove, mock_logging):
+    def test_merge_images_with_pdf_fixing(self, mock_os_remove):
         # Setup
         mock_os_remove.side_effect = [None, None, OSError('already deleted'), OSError('already deleted')]
         actions = [(PATH_TO_HORIZONTAL_JPG_FILE, 0), (PATH_TO_JPG_FILE, 90)]
         self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions, fix_files=True)
-        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE, 'rb')
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 2)
         num_os_remove_calls = len(mock_os_remove.call_args_list[0])
         self.assertEqual(num_os_remove_calls, 2)
-        num_logging_calls = len(mock_logging.warning.call_args_list[0])
-        self.assertEqual(num_logging_calls, 2)
+
+    @patch('os.remove')
+    def test_merge_images_and_pdfs_with_pdf_fixing(self, mock_os_remove):
+        # Setup
+        mock_os_remove.side_effect = [None, None, OSError('already deleted'), OSError('already deleted')]
+        actions = [(self.pdf_file.name, 0), (PATH_TO_JPG_FILE, 90)]
+        self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions, fix_files=True)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE, 'rb')
+        new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
+        new_document_clipper_pdf_reader.pdf_to_xml()
+        pages = new_document_clipper_pdf_reader.get_pages()
+        self.assertEqual(len(pages), 11)
+        num_os_remove_calls = len(mock_os_remove.call_args_list[0])
+        self.assertEqual(num_os_remove_calls, 2)
 
     @patch('os.remove')
     def test_merge_files_with_blank_page(self, mock_os_remove):
         actions = [(self.pdf_file.name, 0), (PATH_TO_JPG_FILE, 0)]
         self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions,
                                                append_blank_page=True)
-        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE, 'rb')
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
@@ -244,7 +260,7 @@ class TestDocumentClipperPdf(TestCase):
         page_actions = [(2, 0), (3, 0)]
         self.document_clipper_pdf_writer.slice(self.pdf_file.name, page_actions, PATH_TO_NEW_PDF_FILE)
 
-        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE, 'rb')
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
@@ -252,11 +268,21 @@ class TestDocumentClipperPdf(TestCase):
         mock_os_remove.assert_not_called()
 
     @patch('os.remove')
+    def test_slice_out_of_bounds_page_range(self, mock_os_remove):
+        page_actions = [(11, 0)]  # Sample PDF file has at most 10 pages
+
+        with self.assertRaisesRegexp(Exception, u'Invalid page numbers range in actions: '
+                                                u'page numbers cannot exceed the maximum numbers of '
+                                                u'pages of the source PDF document'):
+            self.document_clipper_pdf_writer.slice(self.pdf_file.name, page_actions, PATH_TO_NEW_PDF_FILE)
+            mock_os_remove.assert_called()
+
+    @patch('os.remove')
     def test_slice_with_pdf_fixing(self, mock_os_remove):
         page_actions = [(2, 0), (3, 0)]
         self.document_clipper_pdf_writer.slice(self.pdf_file.name, page_actions, PATH_TO_NEW_PDF_FILE, fix_file=True)
 
-        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE, 'rb')
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
@@ -285,7 +311,7 @@ class TestDocumentClipperPdf(TestCase):
     def test_slice_with_rotation(self, mock_os_remove):
         self.document_clipper_pdf_writer.slice(self.pdf_file.name, [(2, 90), (4, 180)], PATH_TO_NEW_PDF_FILE)
 
-        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE, 'rb')
         new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
@@ -300,19 +326,27 @@ class TestDocumentClipperPdf(TestCase):
         self.assertIn('Huge', text)
 
     def test_pdf_to_text_from_pdf_with_images(self):
-        self.pdf_file = open(PATH_TO_PDF_FILE_WITH_IMAGES)
+        self.pdf_file = open(PATH_TO_PDF_FILE_WITH_IMAGES, 'rb')
         self.document_clipper_pdf_reader = DocumentClipperPdfReader(self.pdf_file)
         text = self.document_clipper_pdf_reader.pdf_to_text(self._images_to_text_method_mocked())
-        self.assertIn('NIF', text)
-        self.assertIn('Documento de identidad electrónico', text)
+        self.assertIn(u'NIF', text)
+        self.assertIn(u'Documento de identidad electrónico', text)
         self.assertEqual(4, len(self.document_clipper_pdf_reader._pdf_image_to_text_method.call_args_list))
 
     def test_pdf_to_text_from_pdf_with_images_no_jpg(self):
         # Only one pbm is extracted, converted to jpg and pdf_to_text
-        self.pdf_file = open(PATH_TO_PDF_FILE_WITH_IMAGES_NO_JPG)
+        self.pdf_file = open(PATH_TO_PDF_FILE_WITH_IMAGES_NO_JPG, 'rb')
         self.document_clipper_pdf_reader = DocumentClipperPdfReader(self.pdf_file)
         self.document_clipper_pdf_reader.pdf_to_text(self._images_to_text_method_mocked())
         self.assertEqual(1, len(self.document_clipper_pdf_reader._pdf_image_to_text_method.call_args_list))
+
+    @patch('shutil.rmtree')
+    def test_pdf_to_text_from_pdf_with_images_exception_raised(self, mock_rmtree):
+        self.pdf_file = open(PATH_TO_PDF_FILE_WITH_IMAGES, 'rb')
+        self.document_clipper_pdf_reader = DocumentClipperPdfReader(self.pdf_file)
+        self.assertRaises(Exception, self.document_clipper_pdf_reader.pdf_to_text,
+                          self._images_to_text_method_mocked_with_exception())
+        self.assertEqual(1, len(mock_rmtree.call_args_list))
 
     @patch('os.remove')
     def test_fix_pdf_ok(self, mock_os_remove):
@@ -330,8 +364,8 @@ class TestDocumentClipperPdf(TestCase):
         mock_os_remove.assert_not_called()
 
     @patch('os.remove')
-    def test_cleaning_up_beacuse_of_pdf_to_xml_tmp_images(self, mock_remove):
-        self.pdf_file = open(PATH_TO_PDF_FILE_WITH_IMAGES)
+    def test_cleaning_up_because_of_pdf_to_xml_tmp_images(self, mock_remove):
+        self.pdf_file = open(PATH_TO_PDF_FILE_WITH_IMAGES, 'rb')
         with DocumentClipperPdfReader(self.pdf_file) as document_clipper_pdf_reader:
             pdf_to_xml = document_clipper_pdf_reader.pdf_to_xml()
 
@@ -341,7 +375,7 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(len(mock_remove.call_args_list), 4)
 
     @patch('os.remove')
-    def test_cleaning_up_beacuse_of_pdf_to_xml_tmp_images_nothing_to_clean(self, mock_remove):
+    def test_cleaning_up_because_of_pdf_to_xml_tmp_images_nothing_to_clean(self, mock_remove):
         with DocumentClipperPdfReader(self.pdf_file) as document_clipper_pdf_reader:
             pdf_to_xml = document_clipper_pdf_reader.pdf_to_xml()
 
