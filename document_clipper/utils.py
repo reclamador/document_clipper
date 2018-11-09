@@ -34,6 +34,8 @@ class ShellCommand(object):
                 raise exceptions.ShellCommandError(
                     ' '.join(args), 127, '', '',
                 )
+            else:
+                raise exceptions.ShellCommandError(' '.join(args), e.errno or -1, '', e.strerror or '')
 
         # pipe.wait() ends up hanging on large files. using
         # pipe.communicate appears to avoid this issue
@@ -101,9 +103,11 @@ class FixPdfCommand(ShellCommand):
         path_to_corrected_pdf = u"/tmp/%s_%s" % (filename_prefix, in_filename)
 
         try:
-            super(FixPdfCommand, self).run(['/usr/bin/pdftocairo', '-pdf',
+            super(FixPdfCommand, self).run(['/usr/bin/pdftocairo', '-pdf', '-origpagesizes',
                                             input_file_path, path_to_corrected_pdf])
         except exceptions.ShellCommandError:
+            return input_file_path
+        except Exception:
             return input_file_path
         else:
             os.remove(input_file_path)

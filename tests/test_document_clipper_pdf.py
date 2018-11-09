@@ -35,6 +35,11 @@ class TestDocumentClipperPdf(TestCase):
         method.return_value = 'llamada a metodo'
         return method
 
+    def _images_to_text_method_mocked_with_exception(self):
+        method = Mock()
+        method.side_effect = Exception
+        return method
+
     def test_pdf_to_xml_ok(self):
         pdf_to_xml = self.document_clipper_pdf_reader.pdf_to_xml()
         self.assertTrue(pdf_to_xml.is_xml)
@@ -152,7 +157,7 @@ class TestDocumentClipperPdf(TestCase):
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 20)
-        mock_os_remove.assert_not_called()
+        self.assertEqual(len(mock_os_remove.call_args_list), 2)
 
     @patch('os.remove')
     def test_merge_pdfs_with_pdf_fixing(self, mock_os_remove):
@@ -174,7 +179,7 @@ class TestDocumentClipperPdf(TestCase):
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 20)
-        mock_os_remove.assert_not_called()
+        self.assertEqual(len(mock_os_remove.call_args_list), 2)
 
     @patch('os.remove')
     def test_merge_pdfs_with_blank_page(self, mock_os_remove):
@@ -186,7 +191,7 @@ class TestDocumentClipperPdf(TestCase):
         new_document_clipper_pdf_reader.pdf_to_xml()
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 22)
-        mock_os_remove.assert_not_called()
+        self.assertEqual(len(mock_os_remove.call_args_list), 2)
 
     @patch('os.remove')
     def test_merge_files_without_rotation(self, mock_os_remove):
@@ -210,9 +215,8 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(len(pages), 11)
         mock_os_remove.assert_called()
 
-    @patch('document_clipper.pdf.logging')
     @patch('os.remove')
-    def test_merge_images_with_pdf_fixing(self, mock_os_remove, mock_logging):
+    def test_merge_images_with_pdf_fixing(self, mock_os_remove):
         # Setup
         mock_os_remove.side_effect = [None, None, OSError('already deleted'), OSError('already deleted')]
         actions = [(PATH_TO_HORIZONTAL_JPG_FILE, 0), (PATH_TO_JPG_FILE, 90)]
@@ -224,8 +228,20 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(len(pages), 2)
         num_os_remove_calls = len(mock_os_remove.call_args_list[0])
         self.assertEqual(num_os_remove_calls, 2)
-        num_logging_calls = len(mock_logging.warning.call_args_list[0])
-        self.assertEqual(num_logging_calls, 2)
+
+    @patch('os.remove')
+    def test_merge_images_and_pdfs_with_pdf_fixing(self, mock_os_remove):
+        # Setup
+        mock_os_remove.side_effect = [None, None, OSError('already deleted'), OSError('already deleted')]
+        actions = [(self.pdf_file.name, 0), (PATH_TO_JPG_FILE, 90)]
+        self.document_clipper_pdf_writer.merge(PATH_TO_NEW_PDF_FILE, actions, fix_files=True)
+        new_pdf = open(PATH_TO_NEW_PDF_FILE)
+        new_document_clipper_pdf_reader = DocumentClipperPdfReader(new_pdf)
+        new_document_clipper_pdf_reader.pdf_to_xml()
+        pages = new_document_clipper_pdf_reader.get_pages()
+        self.assertEqual(len(pages), 11)
+        num_os_remove_calls = len(mock_os_remove.call_args_list[0])
+        self.assertEqual(num_os_remove_calls, 2)
 
     @patch('os.remove')
     def test_merge_files_with_blank_page(self, mock_os_remove):
@@ -250,6 +266,16 @@ class TestDocumentClipperPdf(TestCase):
         pages = new_document_clipper_pdf_reader.get_pages()
         self.assertEqual(len(pages), 2)
         mock_os_remove.assert_not_called()
+
+    @patch('os.remove')
+    def test_slice_out_of_bounds_page_range(self, mock_os_remove):
+        page_actions = [(11, 0)]  # Sample PDF file has at most 10 pages
+
+        with self.assertRaisesRegexp(Exception, u'Invalid page numbers range in actions: '
+                                                u'page numbers cannot exceed the maximum numbers of '
+                                                u'pages of the source PDF document'):
+            self.document_clipper_pdf_writer.slice(self.pdf_file.name, page_actions, PATH_TO_NEW_PDF_FILE)
+            mock_os_remove.assert_called()
 
     @patch('os.remove')
     def test_slice_with_pdf_fixing(self, mock_os_remove):
@@ -314,6 +340,14 @@ class TestDocumentClipperPdf(TestCase):
         self.document_clipper_pdf_reader.pdf_to_text(self._images_to_text_method_mocked())
         self.assertEqual(1, len(self.document_clipper_pdf_reader._pdf_image_to_text_method.call_args_list))
 
+    @patch('shutil.rmtree')
+    def test_pdf_to_text_from_pdf_with_images_exception_raised(self, mock_rmtree):
+        self.pdf_file = open(PATH_TO_PDF_FILE_WITH_IMAGES)
+        self.document_clipper_pdf_reader = DocumentClipperPdfReader(self.pdf_file)
+        self.assertRaises(Exception, self.document_clipper_pdf_reader.pdf_to_text,
+                          self._images_to_text_method_mocked_with_exception())
+        self.assertEqual(1, len(mock_rmtree.call_args_list))
+
     @patch('os.remove')
     def test_fix_pdf_ok(self, mock_os_remove):
         ret_file_path = self.document_clipper_pdf_writer.fix_pdf(PATH_TO_PDF_FILE)
@@ -330,7 +364,7 @@ class TestDocumentClipperPdf(TestCase):
         mock_os_remove.assert_not_called()
 
     @patch('os.remove')
-    def test_cleaning_up_beacuse_of_pdf_to_xml_tmp_images(self, mock_remove):
+    def test_cleaning_up_because_of_pdf_to_xml_tmp_images(self, mock_remove):
         self.pdf_file = open(PATH_TO_PDF_FILE_WITH_IMAGES)
         with DocumentClipperPdfReader(self.pdf_file) as document_clipper_pdf_reader:
             pdf_to_xml = document_clipper_pdf_reader.pdf_to_xml()
@@ -341,7 +375,7 @@ class TestDocumentClipperPdf(TestCase):
         self.assertEqual(len(mock_remove.call_args_list), 4)
 
     @patch('os.remove')
-    def test_cleaning_up_beacuse_of_pdf_to_xml_tmp_images_nothing_to_clean(self, mock_remove):
+    def test_cleaning_up_because_of_pdf_to_xml_tmp_images_nothing_to_clean(self, mock_remove):
         with DocumentClipperPdfReader(self.pdf_file) as document_clipper_pdf_reader:
             pdf_to_xml = document_clipper_pdf_reader.pdf_to_xml()
 
