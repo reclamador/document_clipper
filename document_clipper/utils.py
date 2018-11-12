@@ -112,3 +112,14 @@ class FixPdfCommand(ShellCommand):
         else:
             os.remove(input_file_path)
             return path_to_corrected_pdf
+
+
+class PdfToXMLCommand(ShellCommand):
+
+    def run(self, pdf_file_path):
+        with tempfile.NamedTemporaryFile(mode='r', suffix='.xml') as xmlin:
+            tmpxml = os.path.splitext(xmlin.name)[0]
+            stdout, stderr = super(PdfToXMLCommand, self).run(['pdftohtml', '-xml', '-nodrm', '-zoom', '1.5',
+                                                               '-enc', 'UTF-8', '-noframes', pdf_file_path, tmpxml])
+            xmldata = xmlin.read()
+        return xmldata.decode('utf-8')

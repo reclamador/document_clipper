@@ -4,8 +4,10 @@
 from unittest import TestCase
 import os
 import shutil
+from bs4 import BeautifulSoup
 from mock import patch
-from document_clipper.utils import PDFToTextCommand, PDFToImagesCommand, PDFListImagesCommand, FixPdfCommand
+from document_clipper.utils import PDFToTextCommand, PDFToImagesCommand, PDFListImagesCommand, FixPdfCommand, \
+    PdfToXMLCommand
 from document_clipper.exceptions import ShellCommandError
 from PIL import Image
 
@@ -99,6 +101,13 @@ class TestShellCommands(TestCase):
         ret_file_path = fix_pdf_command.run(invalid_file_path)
         self.assertEqual(ret_file_path, invalid_file_path)
         mock_os_remove.assert_not_called()
+
+    def test_pdf_to_xml(self):
+        pdf_to_xml_command = PdfToXMLCommand()
+
+        ret_xml_data = pdf_to_xml_command.run(PATH_TO_PDF_FILE)
+        xml_data = BeautifulSoup(ret_xml_data, 'xml')
+        self.assertEqual(len(xml_data.findAll('page')), 10)
 
     @patch('os.remove')
     @patch('document_clipper.utils.subprocess.Popen')
