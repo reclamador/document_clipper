@@ -40,6 +40,11 @@ class TestDocumentClipperPdf(TestCase):
         method.side_effect = Exception
         return method
 
+    def _images_to_text_method_mocked_with_exception(self):
+        method = Mock()
+        method.side_effect = Exception
+        return method
+
     def test_pdf_to_xml_ok(self):
         pdf_to_xml = self.document_clipper_pdf_reader.pdf_to_xml()
         self.assertTrue(pdf_to_xml.is_xml)
