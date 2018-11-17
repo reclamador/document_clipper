@@ -1,5 +1,6 @@
 import os
 
+
 class ShellCommandError(Exception):
     """This error is raised when a shell.run returns a non-zero exit code
     (meaning the command failed).
