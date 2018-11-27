@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function
 import re
 import logging
 import imghdr
@@ -53,7 +54,7 @@ class DocumentClipperPdfReader(BaseDocumentClipperPdf):
                 for image in self._pdf_to_xml.findAll('image'):
                     if image.get('src'):
                         os.remove(image['src'])
-            except:
+            except Exception:
                 logging.exception(u"Error cleaning up '%s'" % self.pdf_file.name)
 
     def _read_file(self):
@@ -177,7 +178,7 @@ class DocumentClipperPdfReader(BaseDocumentClipperPdf):
                 logging.exception("Error extracting text from pdf image")
                 raise e
             shutil.rmtree(images_dir)
-        return text_out
+        return text_out.decode('utf-8')
 
     def pdf_to_text(self, pdf_image_to_text_method=None):
         """
@@ -210,7 +211,7 @@ class DocumentClipperPdfWriter(BaseDocumentClipperPdf):
 
     def _write_to_pdf(self, output, path):
         logging.info(u"Start writing '%s'" % path)
-        output_stream = file(path, "wb")
+        output_stream = open(path, "wb")
         output.write(output_stream)
         output_stream.close()
 
@@ -360,7 +361,7 @@ class DocumentClipperPdfWriter(BaseDocumentClipperPdf):
 
             # Check page actions correspond to valid input PDF pages
             input_num_pages = input_reader.getNumPages()
-            actions_page_numbers = zip(*page_actions)[0]
+            actions_page_numbers = list(zip(*page_actions))[0]
             largest_page_num = max(actions_page_numbers)
             lowest_page_num = min(actions_page_numbers)
 
@@ -375,6 +376,6 @@ class DocumentClipperPdfWriter(BaseDocumentClipperPdf):
             # Perform actual slicing + rotation
             # Here page numbers must be normalized to be 0-indexed
             for num_page, rotation in page_actions:
-                output.addPage(input_reader.getPage(num_page-1).rotateCounterClockwise(rotation) if rotation
-                               else input_reader.getPage(num_page-1))
+                output.addPage(input_reader.getPage(num_page - 1).rotateCounterClockwise(rotation) if rotation
+                               else input_reader.getPage(num_page - 1))
             self._write_to_pdf(output, final_pdf_path)

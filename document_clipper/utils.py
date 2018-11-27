@@ -1,3 +1,4 @@
+from __future__ import absolute_import, division, print_function
 from datetime import datetime
 import errno
 import os
@@ -7,7 +8,6 @@ import subprocess
 import tempfile
 
 from document_clipper import exceptions
-
 
 
 class ShellCommand(object):
@@ -77,6 +77,7 @@ class PDFToImagesCommand(ShellCommand):
                                                               file_name, '%s/%s' % (tmp_dir, str(page))])
         return tmp_dir
 
+
 class PDFListImagesCommand(ShellCommand):
     """
     pdfimages Poppler utils just check if there are images
@@ -87,7 +88,7 @@ class PDFListImagesCommand(ShellCommand):
         return stdout
 
     def has_images(self, out):
-        return 'image' in out
+        return b'image' in out
 
 
 class FixPdfCommand(ShellCommand):
@@ -122,4 +123,7 @@ class PdfToXMLCommand(ShellCommand):
             stdout, stderr = super(PdfToXMLCommand, self).run(['pdftohtml', '-xml', '-nodrm', '-zoom', '1.5',
                                                                '-enc', 'UTF-8', '-noframes', pdf_file_path, tmpxml])
             xmldata = xmlin.read()
-        return xmldata.decode('utf-8')
+        try:
+            return xmldata.decode('utf-8')
+        except AttributeError:
+            return xmldata

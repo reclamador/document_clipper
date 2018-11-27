@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+from __future__ import absolute_import, division, print_function
 from unittest import TestCase
 import os
 import shutil
@@ -22,19 +22,19 @@ PATH_TO_PDF_FILE_WITH_IMAGES_NO_JPG = os.path.join(CURRENT_DIR, 'sample-files/pd
 
 class TestShellCommands(TestCase):
     def setUp(self):
-        self.pdf_file_with_text = open(PATH_TO_PDF_FILE)
+        self.pdf_file_with_text = open(PATH_TO_PDF_FILE, 'rb')
         self.img_file = Image.open(PATH_TO_JPG_FILE)
-        self.pdf_file_with_images = open(PATH_TO_PDF_FILE_WITH_IMAGES)
+        self.pdf_file_with_images = open(PATH_TO_PDF_FILE_WITH_IMAGES, 'rb')
 
     def test_pdf_to_text_command_text_found(self):
         pdftotext_cmd = PDFToTextCommand()
         out = pdftotext_cmd.run(PATH_TO_PDF_FILE, 1)
-        self.assertIn('Sample PDF Document', out)
+        self.assertIn(b'Sample PDF Document', out)
 
     def test_pdf_to_text_command_text_found_other_page(self):
         pdftotext_cmd = PDFToTextCommand()
         out = pdftotext_cmd.run(PATH_TO_PDF_FILE, 5)
-        self.assertIn('Chapter 1', out)
+        self.assertIn(b'Chapter 1', out)
 
     def test_pdf_to_text_command_no_pdf(self):
         pdftotext_cmd = PDFToTextCommand()
@@ -43,14 +43,14 @@ class TestShellCommands(TestCase):
     def test_pdf_images_list_not_found(self):
         pdflistimages_cmd = PDFListImagesCommand()
         out = pdflistimages_cmd.run(PATH_TO_PDF_FILE, 1)
-        self.assertNotIn('jpg', out)
-        self.assertNotIn('image', out)
+        self.assertNotIn(b'jpg', out)
+        self.assertNotIn(b'image', out)
 
     def test_pdf_images_list_found(self):
         pdflistimages_cmd = PDFListImagesCommand()
         out = pdflistimages_cmd.run(PATH_TO_PDF_FILE_WITH_IMAGES, 1)
-        self.assertIn('jpeg', out)
-        self.assertIn('image', out)
+        self.assertIn(b'jpeg', out)
+        self.assertIn(b'image', out)
 
     def test_pdf_has_images(self):
         pdflistimages_cmd = PDFListImagesCommand()
