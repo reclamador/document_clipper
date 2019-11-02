@@ -17,7 +17,7 @@ requirements = [
     'lxml==4.2.5',
     'pilkit==2.0',
     'PyPDF2==1.26.0',
-    'Pillow==4.2.1',
+    'Pillow==6.2.0',
 ]
 
 setup_requirements = []
