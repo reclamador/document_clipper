@@ -150,14 +150,10 @@ class DocumentClipperPdfReader(BaseDocumentClipperPdf):
         return self._str_list_to_int_list(params)
 
     def _convert_to_jpg(self, image_path):
-        img = Image.open(image_path)
-        if img.mode != "RGB":
-            img = img.convert("RGB")
-            base = os.path.splitext(image_path)[0]
-            new_image_path = base + '.jpg'
-            img.save(new_image_path, 'JPEG')
-            image_path = new_image_path
-        return image_path
+        base = os.path.splitext(image_path)[0]
+        new_image_path = base + '.jpg'
+        save_image(Image.open(image_path), new_image_path, 'JPEG')
+        return new_image_path
 
     def _pdf_page_to_text(self, page):
         pdftotext_cmd = PDFToTextCommand()
