@@ -118,7 +118,7 @@ class FixPdfCommand(ShellCommand):
 class PdfToXMLCommand(ShellCommand):
 
     def run(self, pdf_file_path):
-        with tempfile.NamedTemporaryFile(mode='r', suffix='.xml') as xmlin:
+        with tempfile.NamedTemporaryFile(mode='r', suffix='.xml', errors='ignore') as xmlin:
             tmpxml = os.path.splitext(xmlin.name)[0]
             stdout, stderr = super(PdfToXMLCommand, self).run(['pdftohtml', '-xml', '-nodrm', '-zoom', '1.5',
                                                                '-enc', 'UTF-8', '-noframes', pdf_file_path, tmpxml])
