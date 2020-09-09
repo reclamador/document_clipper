@@ -362,10 +362,10 @@ class DocumentClipperPdfWriter(BaseDocumentClipperPdf):
             lowest_page_num = min(actions_page_numbers)
 
             # Input page numbers are 1-indexed
-            if lowest_page_num < 1:
+            if int(lowest_page_num) < 1:
                 raise Exception(u"Invalid page numbers range in actions: page numbers cannot be lower than 1.")
 
-            if largest_page_num > input_num_pages:
+            if int(largest_page_num) > int(input_num_pages):
                 raise Exception(u"Invalid page numbers range in actions: page numbers cannot exceed the maximum "
                                 u"numbers of pages of the source PDF document.")
 
