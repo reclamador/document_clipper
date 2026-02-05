@@ -13,11 +13,11 @@ with open('HISTORY.rst') as history_file:
 
 
 requirements = [
-    'beautifulsoup4==4.4.1',
+    'beautifulsoup4>=4.4.1',
     'lxml>=4.4.1, <5.0.0',
-    'pilkit==2.0',
+    'pilkit>=2.0',
     'PyPDF2==1.26.0',
-    'Pillow==4.2.1',
+    'Pillow>=4.2.1',
 ]
 
 setup_requirements = []
