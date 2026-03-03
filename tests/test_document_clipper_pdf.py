@@ -11,6 +11,7 @@ from PIL import Image
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 PATH_TO_PDF_FILE = os.path.join(CURRENT_DIR, 'sample-files/sample.pdf')
+PATH_TO_PDF_UTF8_FILE = os.path.join(CURRENT_DIR, 'sample-files/sample-utf8.pdf')
 PATH_TO_JPG_FILE = os.path.join(CURRENT_DIR, 'sample-files/sample.jpg')
 PATH_TO_PNG_FILE = os.path.join(CURRENT_DIR, 'sample-files/sample.png')
 PATH_TO_NEW_PDF_FILE = os.path.join(CURRENT_DIR, 'new_pdf.pdf')
@@ -23,12 +24,15 @@ PATH_TO_HORIZONTAL_JPG_FILE = os.path.join(CURRENT_DIR, 'sample-files/horizontal
 class TestDocumentClipperPdf(TestCase):
     def setUp(self):
         self.pdf_file = open(PATH_TO_PDF_FILE, 'rb')
+        self.pdf_utf8_file = open(PATH_TO_PDF_UTF8_FILE, 'rb')
         self.img_file = Image.open(PATH_TO_JPG_FILE)
         self.document_clipper_pdf_reader = DocumentClipperPdfReader(self.pdf_file)
         self.document_clipper_pdf_writer = DocumentClipperPdfWriter()
 
     def tearDown(self):
         self.document_clipper_pdf_reader = None
+        self.pdf_file.close()
+        self.pdf_utf8_file.close()
 
     def _images_to_text_method_mocked(self):
         method = Mock()
@@ -59,6 +63,23 @@ class TestDocumentClipperPdf(TestCase):
         text_node_item = text_nodes[0]
         self.assertIsNotNone(text_node_item['content'])
         self.assertEqual(text_node_item['page_idx'], 8)
+
+    def test_find_text_with_content_in_pdf_utf8_ok(self):
+        document_clipper_pdf_reader = DocumentClipperPdfReader(self.pdf_utf8_file)
+        document_clipper_pdf_reader.pdf_to_xml()
+        pages = document_clipper_pdf_reader.get_pages()
+        texts_to_find = [
+            "Rubén García",
+            "François Le-mond",
+            "Pedro Pérez",
+            "Juan Muñoz",
+            "Cori’s Plank"
+        ]
+        for text in texts_to_find:
+            text_nodes = document_clipper_pdf_reader.find_text_with_content(
+                pages=pages, text_to_find=text, start_page=0
+            )
+            self.assertEqual(len(text_nodes), 1, text)
 
     def test_find_text_with_content_not_ok(self):
         self.document_clipper_pdf_reader.pdf_to_xml()
